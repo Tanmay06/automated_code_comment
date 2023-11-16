@@ -1,2 +1,2 @@
-# automated_code_comment
-Automated code comment generation using zero-shot, in-context learning and prompt tuning. 
+# Analysis of automated code comment generation with zero-shot learning, in-context learning and prompt tuning on LLMs
+This project is final term project for UTD CS 6301 Special Topics in Computer Science - AI and Software Security. It aims to investigate and enhance the automated code comment generation process using Large Language Models (LLMs). Leveraging techniques such as zero-shot learning, in-context learning, and prompt tuning, the project seeks to improve the quality and relevance of generated code comments. Through comprehensive experimentation and evaluation, the research aims to provide valuable insights into the capabilities of LLMs in the context of software development, ultimately contributing to more efficient and effective code documentation practices.
