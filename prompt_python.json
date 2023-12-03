@@ -1,7 +1,17 @@
 [
     {
-        "prompt":"What is comment for the following python code:",
+        "prompt":"Generate a comment for the following python function:",
         "context": null
+
+    },
+    {
+        "prompt":"Generate a comment for the following python function:",
+        "context": [
+            {
+                "code":"def example_generator(n):\n                for i in range(n):\n                    yield i",
+                "comment":
+            }
+        ]
 
     }
 ]
