@@ -1,6 +1,11 @@
 [
     {
-        "prompt":"Generate a comment for the following python function:",
+        "prompt":"Generate a code comment for the following python function:",
+        "context": null
+
+    },
+    {
+        "prompt":"Generate a code comment for the following python function with the reuired arguments, exceptions and return values:",
         "context": null
 
     },
@@ -8,8 +13,8 @@
         "prompt":"Generate a comment for the following python function:",
         "context": [
             {
-                "code":"def example_generator(n):\n                for i in range(n):\n                    yield i",
-                "comment":
+                "code":"def example_generator(n):\n    for i in range(n):\n        yield i",
+                "comment":"\"\"\"Generators have a ``Yields`` section instead of a ``Returns`` section.\n\n    Args:\n        n (int): The upper limit of the range to generate, from 0 to `n` - 1.\n\n    Yields:\n        int: The next number in the range of 0 to `n` - 1.\n\n    Examples:\n        Examples should be written in doctest format, and should illustrate how\n        to use the function.\n        >>> print([i for i in example_generator(4)])\n        [0, 1, 2, 3]\n\n    \"\"\""
             }
         ]
 
