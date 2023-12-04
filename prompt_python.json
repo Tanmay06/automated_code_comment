@@ -10,6 +10,10 @@
             {
                 "code":"def example_generator(n):\n    for i in range(n):\n        yield i",
                 "comment":"\"\"\"Generators have a ``Yields`` section instead of a ``Returns`` section.\n\n    Args:\n        n (int): The upper limit of the range to generate, from 0 to `n` - 1.\n\n    Yields:\n        int: The next number in the range of 0 to `n` - 1.\n\n    Examples:\n        Examples should be written in doctest format, and should illustrate how\n        to use the function.\n        >>> print([i for i in example_generator(4)])\n        [0, 1, 2, 3]\n\n    \"\"\""
+            },
+            {
+                "code":"def string_reverse(str1):\n    reverse_str1 = ''\n    i = len(str1)\n    while i > 0:\n        reverse_str1 += str1[i - 1]\n        i = i- 1\n    return reverse_str1",
+                "comment":"\"\"\"\n    Returns the reversed String.\n\n    Parameters:\n        str1 (str):The string which is to be reversed.\n\n    Returns:\n        reverse(str1):The string which gets reversed.   \n    \"\"\""
             }
         ]
 
@@ -18,5 +22,19 @@
         "prompt":"Generate a code comment for the following python function with the reuired arguments, exceptions and return values:",
         "context": null
 
+    },
+    {
+        "prompt":"Generate a code comment for the following python function:",
+        "context": [
+            {
+                "code":"SELECT OrderID, CustomerName, OrderDate, OrderStatus FROM Orders WHERE OrderStatus = 'Completed' AND OrderDate >= DATEADD(MONTH, -1, GETDATE()) AND ReviewID IS NULL;",
+                "comment":"-- Comments:\n-- * Filters for completed orders in the last month (DATEADD(MONTH, -1, GETDATE())).\n-- * Checks for null ReviewID, indicating no review has been submitted.\n-- * This allows targeted outreach to customers for feedback."
+            },
+            {
+                "code":"SELECT PostID, PostTitle, Views, Comments, Shares FROM BlogPosts WHERE Views > 1000 AND (Comments + Shares) / Views < 0.05 ORDER BY Views DESC;",
+                "comment":"-- Comments:\n-- * Filters for completed orders in the last month (DATEADD(MONTH, -1, GETDATE())).\n-- * Checks for null ReviewID, indicating no review has been submitted.\n-- * This allows targeted outreach to customers for feedback."
+            }
+
+        ]  
     }
 ]
