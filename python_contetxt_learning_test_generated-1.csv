@@ -1,0 +1,3314 @@
+code,comment,in-context-GeneratedComment
+"def get_vid_from_url(url):
+        
+        return match1(url, r'youtu\.be/([^?/]+)') or \
+          match1(url, r'youtube\.com/embed/([^/?]+)') or \
+          match1(url, r'youtube\.com/v/([^/?]+)') or \
+          match1(url, r'youtube\.com/watch/([^/?]+)') or \
+          parse_query_param(url, 'v') or \
+          parse_query_param(parse_query_param(url, 'u'), 'v')",Extracts video ID from URL.,get video id from url
+"def sina_xml_to_url_list(xml_data):
+    
+    rawurl = []
+    dom = parseString(xml_data)
+    for node in dom.getElementsByTagName('durl'):
+        url = node.getElementsByTagName('url')[0]
+        rawurl.append(url.childNodes[0].data)
+    return rawurl","str->list
+    Convert XML to URL List.
+    From Biligrab.",
+"def makeMimi(upid):
+    
+    strSeed = ""gGddgPfeaf_gzyr""
+    prehash = upid + ""_"" + strSeed
+    return md5(prehash.encode('utf-8')).hexdigest()","From http://cdn37.atwikiimg.com/sitescript/pub/dksitescript/FC2.site.js
+    Also com.hps.util.fc2.FC2EncrptUtil.makeMimiLocal
+    L110",
+"def fc2video_download(url, output_dir = '.', merge = True, info_only = False, **kwargs):
+    
+    #'http:    #'http:    #'http:    #'http:    hostname = urlparse(url).hostname
+    if not ('fc2.com' in hostname or 'xiaojiadianvideo.asia' in hostname):
+        return False
+    upid = match1(url, r'.+/content/(\w+)')
+
+    fc2video_download_by_upid(upid, output_dir, merge, info_only)",wrapper,download fc2 video by url
+"def dailymotion_download(url, output_dir='.', merge=True, info_only=False, **kwargs):
+    
+
+    html = get_content(rebuilt_url(url))
+    info = json.loads(match1(html, r'qualities"":({.+?}),""'))
+    title = match1(html, r'""video_title""\s*:\s*""([^""]+)""') or \
+            match1(html, r'""title""\s*:\s*""([^""]+)""')
+    title = unicodize(title)
+
+    for quality in ['1080','720','480','380','240','144','auto']:
+        try:
+            real_url = info[quality][1][""url""]
+            if real_url:
+                break
+        except KeyError:
+            pass
+
+    mime, ext, size = url_info(real_url)
+
+    print_info(site_info, title, mime, size)
+    if not info_only:
+        download_urls([real_url], title, ext, size, output_dir=output_dir, merge=merge)",Downloads Dailymotion videos by URL.,Download videos from Dailymotion.com
+"def dictify(r,root=True):
+    """"""http:    if root:
+        return {r.tag : dictify(r, False)}
+    d=copy(r.attrib)
+    if r.text:
+        d[""_text""]=r.text
+    for x in r.findall(""./*""):
+        if x.tag not in d:
+            d[x.tag]=[]
+        d[x.tag].append(dictify(x,False))
+    return d",http://stackoverflow.com/a/30923963/2946714,Recursively convert an xml.etree.ElementTree to a dict.
+"def ucas_download_single(url, output_dir = '.', merge = False, info_only = False, **kwargs):
+    '
+    html = get_content(url)
+    # resourceID is UUID
+    resourceID = re.findall( r'resourceID"":""([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', html)[0]
+    assert resourceID != '', 'Cannot find resourceID!'
+
+    title = match1(html, r'<div class=""bc-h"">(.+)</div>')
+    url_lists = _ucas_get_url_lists_by_resourceID(resourceID)
+    assert url_lists, 'Cannot find any URL of such class!'
+    
+    for k, part in enumerate(url_lists):
+        part_title = title + '_' + str(k)
+        print_info(site_info, part_title, 'flv', 0)
+        if not info_only:
+            download_urls(part, part_title, 'flv', total_size=None, output_dir=output_dir, merge=merge)",video page,download single video from ucas.cn
+"def ucas_download_playlist(url, output_dir = '.', merge = False, info_only = False, **kwargs):
+    '
+    html = get_content(url)
+
+    parts = re.findall( r'(getplaytitle.do\?.+)""', html)
+    assert parts, 'No part found!'
+
+    for part_path in parts:
+        ucas_download('http://v.ucas.ac.cn/course/' + part_path, output_dir=output_dir, merge=merge, info_only=info_only)",course page,download playlist from ucas.ac.cn
+"def sina_download_by_vid(vid, title=None, output_dir='.', merge=True, info_only=False):
+    
+    xml = api_req(vid)
+    urls, name, size = video_info(xml)
+    if urls is None:
+        log.wtf(name)
+    title = name
+    print_info(site_info, title, 'flv', size)
+    if not info_only:
+        download_urls(urls, title, 'flv', size, output_dir = output_dir, merge = merge)","Downloads a Sina video by its unique vid.
+    http://video.sina.com.cn/",download video by vid
+"def sina_download_by_vkey(vkey, title=None, output_dir='.', merge=True, info_only=False):
+    
+
+    url = 'http:    type, ext, size = url_info(url)
+
+    print_info(site_info, title, 'flv', size)
+    if not info_only:
+        download_urls([url], title, 'flv', size, output_dir = output_dir, merge = merge)","Downloads a Sina video by its unique vkey.
+    http://video.sina.com/",download video by vkey
+"def sina_download(url, output_dir='.', merge=True, info_only=False, **kwargs):
+    
+    if 'news.sina.com.cn/zxt' in url:
+        sina_zxt(url, output_dir=output_dir, merge=merge, info_only=info_only, **kwargs)
+        return
+
+    vid = match1(url, r'vid=(\d+)')
+    if vid is None:
+        video_page = get_content(url)
+        vid = hd_vid = match1(video_page, r'hd_vid\s*:\s*\'([^\']+)\).split('|')
+            vid = vids[-1]
+
+    if vid is None:
+        vid = match1(video_page, r'vid:""?(\d+)""?')
+    if vid:
+        #title = match1(video_page, r'title\s*:\s*\'([^\']+)\'')
+        sina_download_by_vid(vid, output_dir=output_dir, merge=merge, info_only=info_only)
+    else:
+        vkey = match1(video_page, r'vkey\s*:\s*""([^""]+)""')
+        if vkey is None:
+            vid = match1(url, r'#(\d+)')
+            sina_download_by_vid(vid, output_dir=output_dir, merge=merge, info_only=info_only)
+            return
+        title = match1(video_page, r'title\s*:\s*""([^""]+)""')
+        sina_download_by_vkey(vkey, title=title, output_dir=output_dir, merge=merge, info_only=info_only)",Downloads Sina videos by URL.,"download video from sina.com.cn
+
+Args:
+    url: video url
+    output_dir: output directory
+    merge: merge all video segments into one file
+    info_only: only print information, not download
+    **kwargs: other key word arguments
+"
+"def yixia_download(url, output_dir = '.', merge = True, info_only = False, **kwargs):
+    
+    hostname = urlparse(url).hostname
+    if 'n.miaopai.com' == hostname: 
+        smid = match1(url, r'n\.miaopai\.com/media/([^.]+)') 
+        miaopai_download_by_smid(smid, output_dir, merge, info_only)
+        return
+    elif 'miaopai.com' in hostname:  #Miaopai
+        yixia_download_by_scid = yixia_miaopai_download_by_scid
+        site_info = ""Yixia Miaopai""
+
+        scid = match1(url, r'miaopai\.com/show/channel/([^.]+)\.htm') or \
+               match1(url, r'miaopai\.com/show/([^.]+)\.htm') or \
+               match1(url, r'm\.miaopai\.com/show/channel/([^.]+)\.htm') or \
+               match1(url, r'm\.miaopai\.com/show/channel/([^.]+)')
+
+    elif 'xiaokaxiu.com' in hostname:  #Xiaokaxiu
+        yixia_download_by_scid = yixia_xiaokaxiu_download_by_scid
+        site_info = ""Yixia Xiaokaxiu""
+
+        if re.match(r'http:            scid = match1(url, r'http:        elif re.match(r'http:            scid = match1(url, r'http:
+    else:
+        pass
+
+    yixia_download_by_scid(scid, output_dir, merge, info_only)",wrapper,"Download videos from Yixia (Miaopai, Xiaokaxiu)
+
+Args:
+    url (str): URL of the video
+    output_dir (str, optional): Output directory. Defaults to '.'.
+    merge (bool, optional): Merge all videos into one. Defaults to True.
+    info_only (bool, optional): If True, only print information without downloading. Defaults to False.
+    **kwargs: Other parameters passed to the download function.
+
+Returns:
+    dict: Information about the video.
+"
+"def veoh_download(url, output_dir = '.', merge = False, info_only = False, **kwargs):
+    '
+    if re.match(r'http:        item_id = match1(url, r'http:    elif re.match(r'http:        item_id = match1(url, r'http:    else:
+        raise NotImplementedError('Cannot find item ID')
+    veoh_download_by_id(item_id, output_dir = '.', merge = False, info_only = info_only, **kwargs)",Get item_id,Download video from Veoh.com.
+"def veoh_download_by_id(item_id, output_dir = '.', merge = False, info_only = False, **kwargs):
+    
+    webpage_url = 'http:
+    #grab download URL
+    a = get_content(webpage_url, decoded=True)
+    url = match1(a, r'<source src=""(.*?)\""\W')
+
+    #grab title
+    title = match1(a, r'<meta property=""og:title"" content=""([^""]*)""')
+
+    type_, ext, size = url_info(url)
+    print_info(site_info, title, type_, size)
+    if not info_only:
+        download_urls([url], title, ext, total_size=None, output_dir=output_dir, merge=merge)",Source: Android mobile,Download video from Veoh by item id
+"def download_by_id(self, vid = '', title = None, output_dir='.', merge=True, info_only=False,**kwargs):
+        
+
+        assert vid
+
+        self.prepare(vid = vid, title = title, **kwargs)
+
+        self.extract(**kwargs)
+
+        self.download(output_dir = output_dir, 
+                    merge = merge, 
+                    info_only = info_only, **kwargs)","self, str->None
+        
+        Keyword arguments:
+        self: self
+        vid: The video ID for BokeCC cloud, something like
+        FE3BB999594978049C33DC5901307461
+        
+        Calls the prepare() to download the video.
+        
+        If no title is provided, this method shall try to find a proper title
+        with the information providin within the
+        returned content of the API.",download by id
+"def get_vid_from_url(self, url):
+        
+        hit = re.search(r'live.qq.com/(\d+)', url)
+        if hit is not None:
+            return hit.group(1)
+        hit = re.search(r'live.qq.com/directory/match/(\d+)', url)
+        if hit is not None:
+            return self.get_room_id_from_url(hit.group(1))
+        html = get_content(url)
+        room_id = match1(html, r'room_id\"":(\d+)')
+        if room_id is None:
+            log.wtf('Unknown page {}'.format(url))
+        return room_id",Extracts video ID from live.qq.com.,get vid from url
+"def sprint(text, *colors):
+    
+    return ""\33[{}m{content}\33[{}m"".format("";"".join([str(color) for color in colors]), RESET, content=text) if IS_ANSI_TERMINAL and colors else text",Format text with color or other effects into ANSI escaped string.,print with color
+"def print_log(text, *colors):
+    
+    sys.stderr.write(sprint(""{}: {}"".format(script_name, text), *colors) + ""\n"")",Print a log message to standard error.,print log to stderr
+"def e(message, exit_code=None):
+    
+    print_log(message, YELLOW, BOLD)
+    if exit_code is not None:
+        sys.exit(exit_code)",Print an error log message.,print error message and exit with exit_code if provided
+"def wtf(message, exit_code=1):
+    
+    print_log(message, RED, BOLD)
+    if exit_code is not None:
+        sys.exit(exit_code)",What a Terrible Failure!,"print message in red and bold, and exit with exit_code if not None"
+"def detect_os():
+    
+
+    # Inspired by:
+    # https:
+    syst = system().lower()
+    os = 'unknown'
+
+    if 'cygwin' in syst:
+        os = 'cygwin'
+    elif 'darwin' in syst:
+        os = 'mac'
+    elif 'linux' in syst:
+        os = 'linux'
+        # detect WSL https:        try:
+            with open('/proc/version', 'r') as f:
+                if 'microsoft' in f.read().lower():
+                    os = 'wsl'
+        except: pass
+    elif 'windows' in syst:
+        os = 'windows'
+    elif 'bsd' in syst:
+        os = 'bsd'
+
+    return os",Detect operating system.,Detect the current operating system
+"def miaopai_download_by_fid(fid, output_dir = '.', merge = False, info_only = False, **kwargs):
+    '
+    page_url = 'http:
+    mobile_page = get_content(page_url, headers=fake_headers_mobile)
+    url = match1(mobile_page, r'<video id=.*?src=[\'""](.*?)[\'""]\W')
+    if url is None:
+        wb_mp = re.search(r'<script src=([\'""])(.+?wb_mp\.js)\1>', mobile_page).group(2)
+        return miaopai_download_by_wbmp(wb_mp, fid, output_dir=output_dir, merge=merge,
+                                        info_only=info_only, total_size=None, **kwargs)
+    title = match1(mobile_page, r'<title>((.|\n)+?)</title>')
+    if not title:
+        title = fid
+    title = title.replace('\n', '_')
+    ext, size = 'mp4', url_info(url)[2]
+    print_info(site_info, title, ext, size)
+    if not info_only:
+        download_urls([url], title, ext, total_size=None, output_dir=output_dir, merge=merge)",Source: Android mobile,
+"def vimeo_download_by_channel(url, output_dir='.', merge=False, info_only=False, **kwargs):
+    
+    # https:    channel_id = match1(url, r'http:    vimeo_download_by_channel_id(channel_id, output_dir, merge, info_only, **kwargs)",str->None,"Download videos from a Vimeo channel.
+
+Args:
+    url: The URL of the Vimeo channel.
+    output_dir: The directory to save the videos to.
+    merge: Merge the videos into a single file.
+    info_only: Only print information about the videos, don't download them.
+    **kwargs: Additional arguments passed to `_download_video`.
+
+Returns:
+    A list of the video URLs that were downloaded."
+"def vimeo_download_by_channel_id(channel_id, output_dir='.', merge=False, info_only=False, **kwargs):
+    
+    html = get_content('https:    data = loads(html)
+    id_list = []
+
+    #print(data)
+    for i in data['data']:
+        id_list.append(match1(i['uri'], r'/videos/(\w+)'))
+
+    for id in id_list:
+        try:
+            vimeo_download_by_id(id, None, output_dir, merge, info_only, **kwargs)
+        except urllib.error.URLError as e:
+            log.w('{} failed with {}'.format(id, e))",str/int->None,"Download videos from a Vimeo channel.
+
+Args:
+    channel_id: The channel ID.
+    output_dir: The output directory.
+    merge: Merge videos into one.
+    info_only: Only print information.
+    **kwargs: Other parameters.
+
+Raises:
+    URLError: If the download failed."
+"def vimeo_download_by_id(id, title=None, output_dir='.', merge=True, info_only=False, **kwargs):
+    '
+    site = VimeoExtractor()
+    site.download_by_vid(id, info_only=info_only, output_dir=output_dir, merge=merge, **kwargs)","try:
+        # normal Vimeo video
+        html = get_content('https://vimeo.com/' + id)
+        cfg_patt = r'clip_page_config\s*=\s*(\{.+?\});'
+        cfg = json.loads(match1(html, cfg_patt))
+        video_page = get_content(cfg['player']['config_url'], headers=fake_headers)
+        title = cfg['clip']['title']
+        info = loads(video_page)
+    except:
+        # embedded player - referer may be required
+        if 'referer' in kwargs:
+            fake_headers['Referer'] = kwargs['referer']
+
+        video_page = get_content('http://player.vimeo.com/video/%s' % id, headers=fake_headers)
+        title = r1(r'<title>([^<]+)</title>', video_page)
+        info = loads(match1(video_page, r'var t=(\{.+?\});'))
+
+    streams = info['request']['files']['progressive']
+    streams = sorted(streams, key=lambda i: i['height'])
+    url = streams[-1]['url']
+
+    type, ext, size = url_info(url, faker=True)
+
+    print_info(site_info, title, type, size)
+    if not info_only:
+        download_urls([url], title, ext, size, output_dir, merge=merge, faker=True)",Download a video from Vimeo by its ID.
+"def ckplayer_get_info_by_xml(ckinfo):
+    
+    e = ET.XML(ckinfo)
+    video_dict = {'title': ,}
+    dictified = dictify(e)['ckplayer']
+    if 'info' in dictified:
+        if '_text' in dictified['info'][0]['title'][0]:  #title
+            video_dict['title'] = dictified['info'][0]['title'][0]['_text'].strip()
+
+    #if dictify(e)['ckplayer']['info'][0]['title'][0]['_text'].strip():  #duration
+        #video_dict['title'] = dictify(e)['ckplayer']['info'][0]['title'][0]['_text'].strip()
+
+    if '_text' in dictified['video'][0]['size'][0]:  #size exists for 1 piece
+        video_dict['size'] = sum([int(i['size'][0]['_text']) for i in dictified['video']])
+
+    if '_text' in dictified['video'][0]['file'][0]:  #link exist
+        video_dict['links'] = [i['file'][0]['_text'].strip() for i in dictified['video']]
+
+    if '_text' in dictified['flashvars'][0]:
+        video_dict['flashvars'] = dictified['flashvars'][0]['_text'].strip()
+
+    return video_dict","str->dict
+    Information for CKPlayer API content.",get video info from ckplayer xml
+"def get_video_url_from_video_id(video_id):
+    
+    # from js
+    data = [""""] * 256
+    for index, _ in enumerate(data):
+        t = index
+        for i in range(8):
+            t = -306674912 ^ unsigned_right_shitf(t, 1) if 1 & t else unsigned_right_shitf(t, 1)
+        data[index] = t
+
+    def tmp():
+        rand_num = random.random()
+        path = ""/video/urls/v/1/toutiao/mp4/{video_id}?r={random_num}"".format(video_id=video_id,
+                                                                              random_num=str(rand_num)[2:])
+        e = o = r = -1
+        i, a = 0, len(path)
+        while i < a:
+            e = ord(path[i])
+            i += 1
+            if e < 128:
+                r = unsigned_right_shitf(r, 8) ^ data[255 & (r ^ e)]
+            else:
+                if e < 2048:
+                    r = unsigned_right_shitf(r, 8) ^ data[255 & (r ^ (192 | e >> 6 & 31))]
+                    r = unsigned_right_shitf(r, 8) ^ data[255 & (r ^ (128 | 63 & e))]
+                else:
+                    if 55296 <= e < 57344:
+                        e = (1023 & e) + 64
+                        i += 1
+                        o = 1023 & t.url(i)
+                        r = unsigned_right_shitf(r, 8) ^ data[255 & (r ^ (240 | e >> 8 & 7))]
+                        r = unsigned_right_shitf(r, 8) ^ data[255 & (r ^ (128 | e >> 2 & 63))]
+                        r = unsigned_right_shitf(r, 8) ^ data[255 & (r ^ (128 | o >> 6 & 15 | (3 & e) << 4))]
+                        r = unsigned_right_shitf(r, 8) ^ data[255 & (r ^ (128 | 63 & o))]
+                    else:
+                        r = unsigned_right_shitf(r, 8) ^ data[255 & (r ^ (224 | e >> 12 & 15))]
+                        r = unsigned_right_shitf(r, 8) ^ data[255 & (r ^ (128 | e >> 6 & 63))]
+                        r = unsigned_right_shitf(r, 8) ^ data[255 & (r ^ (128 | 63 & e))]
+
+        return ""https:
+    while 1:
+        url = tmp()
+        if url.split(""="")[-1][0] != ""-"":  # 参数s不能为负数
+            return url",Splicing URLs according to video ID to get video details,
+"def get_vid_from_url(url):
+        
+        vid = match1(url, 'https?:        if not vid:
+            vid = match1(url, 'https?:        return vid",Extracts video ID from URL.,get the video id from the url
+"def get_mgtv_real_url(url):
+        
+        content = loads(get_content(url))
+        m3u_url = content['info']
+        split = urlsplit(m3u_url)
+        
+        base_url = ""{scheme}:                                                      netloc = split[1],
+                                                      path = dirname(split[2]))
+
+        content = get_content(content['info'])  #get the REAL M3U url, maybe to be changed later?
+        segment_list = []
+        segments_size = 0
+        for i in content.split():
+            if not i.startswith('#'):  #not the best way, better we use the m3u8 package
+                segment_list.append(base_url + i)
+            # use ext-info for fast size calculate
+            elif i.startswith('#EXT-MGTV-File-SIZE:'):
+                segments_size += int(i[i.rfind(':')+1:])
+
+        return m3u_url, segments_size, segment_list","str->list of str
+        Give you the real URLs.","get mgtv real url, segments size and segment list"
+"def get_head(repo_path):
+    
+    try:
+        ref = open(os.path.join(repo_path, '.git', 'HEAD'), 'r').read().strip()[5:].split('/')
+        branch = ref[-1]
+        commit = open(os.path.join(repo_path, '.git', *ref), 'r').read().strip()[:7]
+        return branch, commit
+    except:
+        return None","Get (branch, commit) from HEAD of a git repo.",get the current branch and commit id of a git repo
+"def legitimize(text, os=detect_os()):
+    
+
+    # POSIX systems
+    text = text.translate({
+        0: None,
+        ord('/'): '-',
+        ord('|'): '-',
+    })
+
+    # FIXME: do some filesystem detection
+    if os == 'windows' or os == 'cygwin' or os == 'wsl':
+        # Windows (non-POSIX namespace)
+        text = text.translate({
+            # Reserved in Windows VFAT and NTFS
+            ord(':'): '-',
+            ord('*'): '-',
+            ord('?'): '-',
+            ord('\\'): '-',
+            ord('\""'): '\'',
+            # Reserved in Windows VFAT
+            ord('+'): '-',
+            ord('<'): '-',
+            ord('>'): '-',
+            ord('['): '(',
+            ord(']'): ')',
+            ord('\t'): ' ',
+        })
+    else:
+        # *nix
+        if os == 'mac':
+            # Mac OS HFS+
+            text = text.translate({
+                ord(':'): '-',
+            })
+
+        # Remove leading .
+        if text.startswith("".""):
+            text = text[1:]
+
+    text = text[:80] # Trim to 82 Unicode characters long
+    return text",Converts a string to a valid filename.,"Normalizes a string to be a valid filename.
+
+This function is used to normalize filenames for use in the
+`git-archive` command. It is not intended to be a general-purpose
+filename normalization function.
+
+The function is designed to work on both Windows and POSIX systems.
+
+Args:
+    text: The string to normalize.
+    os: The operating system to normalize for. Defaults to the current
+        operating system.
+
+Returns:
+    The normalized string."
+"def get_terminal_size():
+    
+    try:
+        import fcntl, termios, struct # fcntl module only available on Unix
+        return struct.unpack('hh', fcntl.ioctl(1, termios.TIOCGWINSZ, '1234'))
+    except:
+        return (40, 80)","Get (width, height) of the current terminal.","Get the terminal size in characters.
+
+Returns a tuple (rows, columns).
+
+If the terminal size cannot be determined, returns (40, 80)."
+"def cbs_download(url, output_dir='.', merge=True, info_only=False, **kwargs):
+    
+
+    html = get_content(url)
+    pid = match1(html, r'video\.settings\.pid\s*=\s*\'([^\']+)\'')
+    title = match1(html, r'video\.settings\.title\s*=\s*\""([^\""]+)\""')
+
+    theplatform_download_by_pid(pid, title, output_dir=output_dir, merge=merge, info_only=info_only)",Downloads CBS videos by URL.,Download video from CBS.com
+"def download(self, **kwargs):
+        
+        if 'json_output' in kwargs and kwargs['json_output']:
+            json_output.output(self)
+        elif 'info_only' in kwargs and kwargs['info_only']:
+            if 'stream_id' in kwargs and kwargs['stream_id']:
+                # Display the stream
+                stream_id = kwargs['stream_id']
+                if 'index' not in kwargs:
+                    self.p(stream_id)
+                else:
+                    self.p_i(stream_id)
+            else:
+                # Display all available streams
+                if 'index' not in kwargs:
+                    self.p([])
+                else:
+                    stream_id = self.streams_sorted[0]['id'] if 'id' in self.streams_sorted[0] else self.streams_sorted[0]['itag']
+                    self.p_i(stream_id)
+
+        else:
+            if 'stream_id' in kwargs and kwargs['stream_id']:
+                # Download the stream
+                stream_id = kwargs['stream_id']
+            else:
+                # Download stream with the best quality
+                stream_id = self.streams_sorted[0]['id'] if 'id' in self.streams_sorted[0] else self.streams_sorted[0]['itag']
+
+            if 'index' not in kwargs:
+                self.p(stream_id)
+            else:
+                self.p_i(stream_id)
+
+            if stream_id in self.streams:
+                urls = self.streams[stream_id]['src']
+                ext = self.streams[stream_id]['container']
+                total_size = self.streams[stream_id]['size']
+            else:
+                urls = self.dash_streams[stream_id]['src']
+                ext = self.dash_streams[stream_id]['container']
+                total_size = self.dash_streams[stream_id]['size']
+
+            if not urls:
+                log.wtf('[Failed] Cannot extract video source.')
+            # For legacy main()
+            
+            #Here's the change!!
+            download_url_ffmpeg(urls[0], self.title, 'mp4', output_dir=kwargs['output_dir'], merge=kwargs['merge'], stream=False)
+
+            if not kwargs['caption']:
+                print('Skipping captions.')
+                return
+            for lang in self.caption_tracks:
+                filename = '%s.%s.srt' % (get_filename(self.title), lang)
+                print('Saving %s ... ' % filename, end="""", flush=True)
+                srt = self.caption_tracks[lang]
+                with open(os.path.join(kwargs['output_dir'], filename),
+                          'w', encoding='utf-8') as x:
+                    x.write(srt)
+                print('Done.')","Override the original one
+        Ugly ugly dirty hack",Download the video and caption tracks.
+"def acfun_download_by_vid(vid, title, output_dir='.', merge=True, info_only=False, **kwargs):
+    
+
+    #first call the main parasing API
+    info = json.loads(get_content('http:
+    sourceType = info['sourceType']
+
+    #decide sourceId to know which extractor to use
+    if 'sourceId' in info: sourceId = info['sourceId']
+    # danmakuId = info['danmakuId']
+
+    #call extractor decided by sourceId
+    if sourceType == 'sina':
+        sina_download_by_vid(sourceId, title, output_dir=output_dir, merge=merge, info_only=info_only)
+    elif sourceType == 'youku':
+        youku_download_by_vid(sourceId, title=title, output_dir=output_dir, merge=merge, info_only=info_only, **kwargs)
+    elif sourceType == 'tudou':
+        tudou_download_by_iid(sourceId, title, output_dir=output_dir, merge=merge, info_only=info_only)
+    elif sourceType == 'qq':
+        qq_download_by_vid(sourceId, title, True, output_dir=output_dir, merge=merge, info_only=info_only)
+    elif sourceType == 'letv':
+        letvcloud_download_by_vu(sourceId, '2d8c027396', title, output_dir=output_dir, merge=merge, info_only=info_only)
+    elif sourceType == 'zhuzhan':
+        #As in Jul.28.2016, Acfun is using embsig to anti hotlink so we need to pass this
+#In Mar. 2017 there is a dedicated ``acfun_proxy'' in youku cloud player
+#old code removed
+        url = 'http:        yk_streams = youku_acfun_proxy(info['sourceId'], info['encode'], url)
+        seq = ['mp4hd3', 'mp4hd2', 'mp4hd', 'flvhd']
+        for t in seq:
+            if yk_streams.get(t):
+                preferred = yk_streams[t]
+                break
+#total_size in the json could be incorrect(F.I. 0)
+        size = 0
+        for url in preferred[0]:
+            _, _, seg_size = url_info(url)
+            size += seg_size
+#fallback to flvhd is not quite possible
+        if re.search(r'fid=[0-9A-Z\-]*.flv', preferred[0][0]):
+            ext = 'flv'
+        else:
+            ext = 'mp4'
+        print_info(site_info, title, ext, size)
+        if not info_only:
+            download_urls(preferred[0], title, ext, size, output_dir=output_dir, merge=merge)
+    else:
+        raise NotImplementedError(sourceType)
+
+    if not info_only and not dry_run:
+        if not kwargs['caption']:
+            print('Skipping danmaku.')
+            return
+        try:
+            title = get_filename(title)
+            print('Downloading %s ...\n' % (title + '.cmt.json'))
+            cmt = get_srt_json(vid)
+            with open(os.path.join(output_dir, title + '.cmt.json'), 'w', encoding='utf-8') as x:
+                x.write(cmt)
+        except:
+            pass","str, str, str, bool, bool ->None
+
+    Download Acfun video by vid.
+
+    Call Acfun API, decide which site to use, and pass the job to its
+    extractor.",Download video from acfun by vid.
+"def main_dev(**kwargs):
+    
+
+    # Get (branch, commit) if running from a git repo.
+    head = git.get_head(kwargs['repo_path'])
+
+    # Get options and arguments.
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], _short_options, _options)
+    except getopt.GetoptError as e:
+        log.wtf(.format(e, script_name))
+
+    if not opts and not args:
+        # Display help.
+        print(_help)
+        # Enter GUI mode.
+        #from .gui import gui_main
+        #gui_main()
+    else:
+        conf = {}
+        for opt, arg in opts:
+            if opt in ('-h', '--help'):
+                # Display help.
+                print(_help)
+
+            elif opt in ('-V', '--version'):
+                # Display version.
+                log.println(""you-get:"", log.BOLD)
+                log.println(""    version:  {}"".format(__version__))
+                if head is not None:
+                    log.println(""    branch:   {}\n    commit:   {}"".format(*head))
+                else:
+                    log.println(""    branch:   {}\n    commit:   {}"".format(""(stable)"", ""(tag v{})"".format(__version__)))
+
+                log.println(""    platform: {}"".format(platform.platform()))
+                log.println(""    python:   {}"".format(sys.version.split('\n')[0]))
+
+            elif opt in ('-g', '--gui'):
+                # Run using GUI.
+                conf['gui'] = True
+
+            elif opt in ('-f', '--force'):
+                # Force download.
+                conf['force'] = True
+
+            elif opt in ('-l', '--playlist', '--playlists'):
+                # Download playlist whenever possible.
+                conf['playlist'] = True
+
+        if args:
+            if 'gui' in conf and conf['gui']:
+                # Enter GUI mode.
+                from .gui import gui_main
+                gui_main(*args, **conf)
+            else:
+                # Enter console mode.
+                from .console import console_main
+                console_main(*args, **conf)","Main entry point.
+    you-get-dev","**main_dev**
+
+Main function for development."
+"def ffmpeg_download_stream(files, title, ext, params={}, output_dir='.', stream=True):
+    
+    output = title + '.' + ext
+
+    if not (output_dir == '.'):
+        output = output_dir + '/' + output
+
+    print('Downloading streaming content with FFmpeg, press q to stop recording...')
+    if stream:
+        ffmpeg_params = [FFMPEG] + ['-y', '-re', '-i']
+    else:
+        ffmpeg_params = [FFMPEG] + ['-y', '-i']
+    ffmpeg_params.append(files)  #not the same here!!!!
+
+    if FFMPEG == 'avconv':  #who cares?
+        ffmpeg_params += ['-c', 'copy', output]
+    else:
+        ffmpeg_params += ['-c', 'copy', '-bsf:a', 'aac_adtstoasc']
+
+    if params is not None:
+        if len(params) > 0:
+            for k, v in params:
+                ffmpeg_params.append(k)
+                ffmpeg_params.append(v)
+
+    ffmpeg_params.append(output)
+
+    print(' '.join(ffmpeg_params))
+
+    try:
+        a = subprocess.Popen(ffmpeg_params, stdin= subprocess.PIPE)
+        a.communicate()
+    except KeyboardInterrupt:
+        try:
+            a.stdin.write('q'.encode('utf-8'))
+        except:
+            pass
+
+    return True","str, str->True
+    WARNING: NOT THE SAME PARMS AS OTHER FUNCTIONS!!!!!!
+    You can basicly download anything with this function
+    but better leave it alone with",Downloads a streaming content with FFmpeg.
+"def match1(text, *patterns):
+    
+
+    if len(patterns) == 1:
+        pattern = patterns[0]
+        match = re.search(pattern, text)
+        if match:
+            return match.group(1)
+        else:
+            return None
+    else:
+        ret = []
+        for pattern in patterns:
+            match = re.search(pattern, text)
+            if match:
+                ret.append(match.group(1))
+        return ret","Scans through a string for substrings matched some patterns (first-subgroups only).
+
+    Args:
+        text: A string to be scanned.
+        patterns: Arbitrary number of regex patterns.
+
+    Returns:
+        When only one pattern is given, returns a string (None if no match found).
+        When more than one pattern are given, returns a list of strings ([] if no match found).","match1(text, *patterns):
+
+    if len(patterns) == 1:
+        pattern = patterns[0]
+        match = re.search(pattern, text)
+        if match:
+            return match.group(1)
+        else:
+            return None
+    else:
+        ret = []
+        for pattern in patterns:
+            match = re.search(pattern, text)
+            if match:
+                ret.append(match.group(1))
+        return ret"
+"def matchall(text, patterns):
+    
+
+    ret = []
+    for pattern in patterns:
+        match = re.findall(pattern, text)
+        ret += match
+
+    return ret","Scans through a string for substrings matched some patterns.
+
+    Args:
+        text: A string to be scanned.
+        patterns: a list of regex pattern.
+
+    Returns:
+        a list if matched. empty if not.",match all patterns in text
+"def parse_query_param(url, param):
+    
+
+    try:
+        return parse.parse_qs(parse.urlparse(url).query)[param][0]
+    except:
+        return None","Parses the query string of a URL and returns the value of a parameter.
+
+    Args:
+        url: A URL.
+        param: A string representing the name of the parameter.
+
+    Returns:
+        The value of the parameter.","Parses the query param from the url
+"
+"def ungzip(data):
+    
+    from io import BytesIO
+    import gzip
+    buffer = BytesIO(data)
+    f = gzip.GzipFile(fileobj=buffer)
+    return f.read()",Decompresses data for Content-Encoding: gzip.,decompress gzip data
+"def undeflate(data):
+    
+    import zlib
+    decompressobj = zlib.decompressobj(-zlib.MAX_WBITS)
+    return decompressobj.decompress(data)+decompressobj.flush()","Decompresses data for Content-Encoding: deflate.
+    (the zlib compression is used.)",undeflates a deflated string
+"def get_content(url, headers={}, decoded=True):
+    
+
+    logging.debug('get_content: %s' % url)
+
+    req = request.Request(url, headers=headers)
+    if cookies:
+        cookies.add_cookie_header(req)
+        req.headers.update(req.unredirected_hdrs)
+
+    response = urlopen_with_retry(req)
+    data = response.read()
+
+    # Handle HTTP compression for gzip and deflate (zlib)
+    content_encoding = response.getheader('Content-Encoding')
+    if content_encoding == 'gzip':
+        data = ungzip(data)
+    elif content_encoding == 'deflate':
+        data = undeflate(data)
+
+    # Decode the response body
+    if decoded:
+        charset = match1(
+            response.getheader('Content-Type', ''), r'charset=([\w-]+)'
+        )
+        if charset is not None:
+            data = data.decode(charset, 'ignore')
+        else:
+            data = data.decode('utf-8', 'ignore')
+
+    return data","Gets the content of a URL via sending a HTTP GET request.
+
+    Args:
+        url: A URL.
+        headers: Request headers used by the client.
+        decoded: Whether decode the response body using UTF-8 or the charset specified in Content-Type.
+
+    Returns:
+        The content as a string.","Get the content of a URL.  
+
+If `decoded` is True, the response body will be decoded using the charset specified in the `Content-Type` header.  If no charset is specified, `utf-8` will be used."
+"def post_content(url, headers={}, post_data={}, decoded=True, **kwargs):
+    
+    if kwargs.get('post_data_raw'):
+        logging.debug('post_content: %s\npost_data_raw: %s' % (url, kwargs['post_data_raw']))
+    else:
+        logging.debug('post_content: %s\npost_data: %s' % (url, post_data))
+
+    req = request.Request(url, headers=headers)
+    if cookies:
+        cookies.add_cookie_header(req)
+        req.headers.update(req.unredirected_hdrs)
+    if kwargs.get('post_data_raw'):
+        post_data_enc = bytes(kwargs['post_data_raw'], 'utf-8')
+    else:
+        post_data_enc = bytes(parse.urlencode(post_data), 'utf-8')
+    response = urlopen_with_retry(req, data=post_data_enc)
+    data = response.read()
+
+    # Handle HTTP compression for gzip and deflate (zlib)
+    content_encoding = response.getheader('Content-Encoding')
+    if content_encoding == 'gzip':
+        data = ungzip(data)
+    elif content_encoding == 'deflate':
+        data = undeflate(data)
+
+    # Decode the response body
+    if decoded:
+        charset = match1(
+            response.getheader('Content-Type'), r'charset=([\w-]+)'
+        )
+        if charset is not None:
+            data = data.decode(charset)
+        else:
+            data = data.decode('utf-8')
+
+    return data","Post the content of a URL via sending a HTTP POST request.
+
+    Args:
+        url: A URL.
+        headers: Request headers used by the client.
+        decoded: Whether decode the response body using UTF-8 or the charset specified in Content-Type.
+
+    Returns:
+        The content as a string.","Send a POST request to the given URL with the given headers and post data.
+
+If `decoded` is True, the response body will be decoded using the charset specified in the Content-Type header.
+
+If `post_data_raw` is True, the post data will be sent as a raw string instead of being URL-encoded."
+"def parse_host(host):
+    
+    if re.match(r'^(\d+)$', host) is not None:
+        return (""0.0.0.0"", int(host))
+    if re.match(r'^(\w+):        host = ""    o = parse.urlparse(host)
+    hostname = o.hostname or ""0.0.0.0""
+    port = o.port or 0
+    return (hostname, port)",Parses host name and port number from a string.,"Parses a host string into a (hostname, port) tuple.
+
+If the host string is a number, it is assumed to be a port number and the hostname is set to ""0.0.0.0"".
+
+If the host string is a URL, the hostname and port are extracted from the URL."
+"def print_more_compatible(*args, **kwargs):
+    import builtins as __builtin__
+    
+    # nothing happens on py3.3 and later
+    if sys.version_info[:2] >= (3, 3):
+        return __builtin__.print(*args, **kwargs)
+
+    # in lower pyver (e.g. 3.2.x), remove 'flush' keyword and flush it as requested
+    doFlush = kwargs.pop('flush', False)
+    ret = __builtin__.print(*args, **kwargs)
+    if doFlush:
+        kwargs.get('file', sys.stdout).flush()
+    return ret","Overload default print function as py (<3.3) does not support 'flush' keyword.
+    Although the function name can be same as print to get itself overloaded automatically,
+    I'd rather leave it with a different name and only overload it when importing to make less confusion.",print() function that is more compatible with python 3.2.x
+"def showroom_get_roomid_by_room_url_key(room_url_key):
+    
+    fake_headers_mobile = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Charset': 'UTF-8,*;q=0.5',
+        'Accept-Encoding': 'gzip,deflate,sdch',
+        'Accept-Language': 'en-US,en;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 4.4.2; Nexus 4 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36'
+    }
+    webpage_url = 'https:    html = get_content(webpage_url, headers = fake_headers_mobile)
+    roomid = match1(html, r'room\?room_id\=(\d+)')
+    assert roomid
+    return roomid",str->str,get roomid by room_url_key
+"def showroom_download_by_room_id(room_id, output_dir = '.', merge = False, info_only = False, **kwargs):
+    '
+    while True:
+        timestamp = str(int(time() * 1000))
+        api_endpoint = 'https:        html = get_content(api_endpoint)
+        html = json.loads(html)
+        #{'streaming_url_list': [{'url': 'rtmp:        if len(html) >= 1:
+            break
+        log.w('The live show is currently offline.')
+        sleep(1)
+
+    #This is mainly for testing the M3U FFmpeg parser so I would ignore any non-m3u ones
+    stream_url = [i['url'] for i in html['streaming_url_list'] if i['is_default'] and i['type'] == 'hls'][0]
+
+    assert stream_url
+
+    #title
+    title = ''
+    profile_api = 'https:    html = loads(get_content(profile_api))
+    try:
+        title = html['main_name']
+    except KeyError:
+        title = 'Showroom_{room_id}'.format(room_id = room_id)
+
+    type_, ext, size = url_info(stream_url)
+    print_info(site_info, title, type_, size)
+    if not info_only:
+        download_url_ffmpeg(url=stream_url, title=title, ext= 'mp4', output_dir=output_dir)",Source: Android mobile,"Download a live show from showroom.live by room_id
+
+Args:
+    room_id (str): The room_id of the live show
+    output_dir (str, optional): The output directory. Defaults to '.'.
+    merge (bool, optional): Whether to merge the downloaded segments into one file. Defaults to False.
+    info_only (bool, optional): Whether to only print the info of the video. Defaults to False.
+    **kwargs: Other parameters passed to `download_url_ffmpeg`.
+"
+"def _wanmen_get_title_by_json_topic_part(json_content, tIndex, pIndex):
+    
+
+    return '_'.join([json_content[0]['name'],
+                    json_content[0]['Topics'][tIndex]['name'],
+                    json_content[0]['Topics'][tIndex]['Parts'][pIndex]['name']])","JSON, int, int, int->str
+    
+    Get a proper title with courseid+topicID+partID.",
+"def wanmen_download_by_course(json_api_content, output_dir='.', merge=True, info_only=False, **kwargs):
+    
+
+    for tIndex in range(len(json_api_content[0]['Topics'])):
+        for pIndex in range(len(json_api_content[0]['Topics'][tIndex]['Parts'])):
+            wanmen_download_by_course_topic_part(json_api_content,
+                                                 tIndex,
+                                                 pIndex,
+                                                 output_dir=output_dir,
+                                                 merge=merge,
+                                                 info_only=info_only,
+                                                 **kwargs)","int->None
+    
+    Download a WHOLE course.
+    Reuse the API call to save time.","download all parts of a course
+"
+"def wanmen_download_by_course_topic_part(json_api_content, tIndex, pIndex, output_dir='.', merge=True, info_only=False, **kwargs):
+    
+
+    html = json_api_content
+
+    title = _wanmen_get_title_by_json_topic_part(html, 
+                                                  tIndex, 
+                                                  pIndex)
+
+    bokeccID = _wanmen_get_boke_id_by_json_topic_part(html,
+                                                      tIndex, 
+                                                     pIndex)
+
+    bokecc_download_by_id(vid = bokeccID, title = title, output_dir=output_dir, merge=merge, info_only=info_only, **kwargs)","int, int, int->None
+    
+    Download ONE PART of the course.",
+"def get_streams_by_id(account_number, video_id):
+        
+        endpoint = 'https:        fake_header_id = fake_headers
+        #is this somehow related to the time? Magic....
+        fake_header_id['Accept'] ='application/json;pk=BCpkADawqM1cc6wmJQC2tvoXZt4mrB7bFfi6zGt9QnOzprPZcGLE9OMGJwspQwKfuFYuCjAAJ53JdjI8zGFx1ll4rxhYJ255AXH1BQ10rnm34weknpfG-sippyQ'
+
+        html = get_content(endpoint, headers= fake_header_id)
+        html_json = json.loads(html)
+
+        link_list = []
+
+        for i in html_json['sources']:
+            if 'src' in i:  #to avoid KeyError
+                if i['src'].startswith('https'):
+                    link_list.append((str(i['height']), i['src']))
+
+        return link_list","int, int->list
+        
+        Get the height of the videos.
+        
+        Since brightcove is using 3 kinds of links: rtmp, http and https,
+        we will be using the HTTPS one to make it secure.
+        
+        If somehow akamaihd.net is blocked by the Great Fucking Wall,
+        change the ""startswith https"" to http.",get the streams for a video by its id
+"def has_task(self, task_instance):
+        
+        if task_instance.key in self.queued_tasks or task_instance.key in self.running:
+            return True","Checks if a task is either queued or running in this executor
+
+        :param task_instance: TaskInstance
+        :return: True if the task is known to this executor",check if the task is in the queue or running
+"def get_event_buffer(self, dag_ids=None):
+        
+        cleared_events = dict()
+        if dag_ids is None:
+            cleared_events = self.event_buffer
+            self.event_buffer = dict()
+        else:
+            for key in list(self.event_buffer.keys()):
+                dag_id, _, _, _ = key
+                if dag_id in dag_ids:
+                    cleared_events[key] = self.event_buffer.pop(key)
+
+        return cleared_events","Returns and flush the event buffer. In case dag_ids is specified
+        it will only return and flush events for the given dag_ids. Otherwise
+        it returns and flushes all
+
+        :param dag_ids: to dag_ids to return events for, if None returns all
+        :return: a dict of events","Get all events from the event buffer. If dag_ids is specified, only return events for those dag_ids."
+"def _get_conn_params(self):
+        
+        conn = self.get_connection(self.snowflake_conn_id)
+        account = conn.extra_dejson.get('account', None)
+        warehouse = conn.extra_dejson.get('warehouse', None)
+        database = conn.extra_dejson.get('database', None)
+        region = conn.extra_dejson.get(""region"", None)
+        role = conn.extra_dejson.get('role', None)
+
+        conn_config = {
+            ""user"": conn.login,
+            ""password"": conn.password or ,
+            ""database"": self.database or database or ,
+            ""warehouse"": self.warehouse or warehouse or ,
+            ""role"": self.role or role or '',
+        }
+
+        
+        private_key_file = conn.extra_dejson.get('private_key_file', None)
+        if private_key_file:
+            with open(private_key_file, ""rb"") as key:
+                passphrase = None
+                if conn.password:
+                    passphrase = conn.password.strip().encode()
+
+                p_key = serialization.load_pem_private_key(
+                    key.read(),
+                    password=passphrase,
+                    backend=default_backend()
+                )
+
+            pkb = p_key.private_bytes(encoding=serialization.Encoding.DER,
+                                      format=serialization.PrivateFormat.PKCS8,
+                                      encryption_algorithm=serialization.NoEncryption())
+
+            conn_config['private_key'] = pkb
+            conn_config.pop('password', None)
+
+        return conn_config","one method to fetch connection params as a dict
+        used in get_uri() and get_connection()",Get connection parameters from the connection object.
+"def get_uri(self):
+        
+        conn_config = self._get_conn_params()
+        uri = 'snowflake:        uri += '{schema}?warehouse={warehouse}&role={role}'
+        return uri.format(**conn_config)",override DbApiHook get_uri method for get_sqlalchemy_engine(),Get the URI for the Snowflake connection.
+"def get_conn(self):
+        
+        conn_config = self._get_conn_params()
+        conn = snowflake.connector.connect(**conn_config)
+        return conn",Returns a snowflake.connection object,get snowflake connection
+"def _get_aws_credentials(self):
+        
+        if self.snowflake_conn_id:
+            connection_object = self.get_connection(self.snowflake_conn_id)
+            if 'aws_secret_access_key' in connection_object.extra_dejson:
+                aws_access_key_id = connection_object.extra_dejson.get(
+                    'aws_access_key_id')
+                aws_secret_access_key = connection_object.extra_dejson.get(
+                    'aws_secret_access_key')
+        return aws_access_key_id, aws_secret_access_key","returns aws_access_key_id, aws_secret_access_key
+        from extra
+
+        intended to be used by external import and export statements",Get the AWS credentials from the Snowflake connection.
+"def _get_field(self, field_name, default=None):
+        
+        full_field_name = 'extra__grpc__{}'.format(field_name)
+        if full_field_name in self.extras:
+            return self.extras[full_field_name]
+        else:
+            return default","Fetches a field from extras, and returns it. This is some Airflow
+        magic. The grpc hook type adds custom UI elements
+        to the hook page, which allow admins to specify scopes, credential pem files, etc.
+        They get formatted as shown below.","Get a field from the extras dict. If the field is not present, return the default value."
+"def copy_expert(self, sql, filename, open=open):
+        
+        if not os.path.isfile(filename):
+            with open(filename, 'w'):
+                pass
+
+        with open(filename, 'r+') as f:
+            with closing(self.get_conn()) as conn:
+                with closing(conn.cursor()) as cur:
+                    cur.copy_expert(sql, f)
+                    f.truncate(f.tell())
+                    conn.commit()","Executes SQL using psycopg2 copy_expert method.
+        Necessary to execute COPY command without access to a superuser.
+
+        Note: if this method is called with a ""COPY FROM"" statement and
+        the specified input file does not exist, it creates an empty
+        file and no data is loaded, but the operation succeeds.
+        So if users want to be aware when the input file does not exist,
+        they have to check its existence by themselves.",copy data from a file to a table using COPY command
+"def bulk_load(self, table, tmp_file):
+        
+        self.copy_expert(""COPY {table} FROM STDIN"".format(table=table), tmp_file)",Loads a tab-delimited file into a database table,bulk load data into table
+"def bulk_dump(self, table, tmp_file):
+        
+        self.copy_expert(""COPY {table} TO STDOUT"".format(table=table), tmp_file)",Dumps a database table into a tab-delimited file,bulk dump table to tmp file
+"def execute(self, context):
+        
+        hook = GoogleCloudStorageHook(
+            google_cloud_storage_conn_id=self.google_cloud_storage_conn_id,
+            delegate_to=self.delegate_to)
+
+        hook.upload(
+            bucket_name=self.bucket,
+            object_name=self.dst,
+            mime_type=self.mime_type,
+            filename=self.src,
+            gzip=self.gzip,
+        )",Uploads the file to Google cloud storage,Uploads a file to Google Cloud Storage.
+"def max_partition(
+        table, schema=""default"", field=None, filter_map=None,
+        metastore_conn_id='metastore_default'):
+    
+    from airflow.hooks.hive_hooks import HiveMetastoreHook
+    if '.' in table:
+        schema, table = table.split('.')
+    hh = HiveMetastoreHook(metastore_conn_id=metastore_conn_id)
+    return hh.max_partition(
+        schema=schema, table_name=table, field=field, filter_map=filter_map)","Gets the max partition for a table.
+
+    :param schema: The hive schema the table lives in
+    :type schema: str
+    :param table: The hive table you are interested in, supports the dot
+        notation as in ""my_database.my_table"", if a dot is found,
+        the schema param is disregarded
+    :type table: str
+    :param metastore_conn_id: The hive connection you are interested in.
+        If your default is set you don't need to use this parameter.
+    :type metastore_conn_id: str
+    :param filter_map: partition_key:partition_value map used for partition filtering,
+                       e.g. {'key1': 'value1', 'key2': 'value2'}.
+                       Only partitions matching all partition_key:partition_value
+                       pairs will be considered as candidates of max partition.
+    :type filter_map: map
+    :param field: the field to get the max value from. If there's only
+        one partition field, this will be inferred
+    :type field: str
+
+    >>> max_partition('airflow.static_babynames_partitioned')
+    '2015-01-01'","Get the maximum partition value for a given table.
+
+Args:
+    table (str): The table name.
+    schema (str): The schema name.
+    field (str): The partition field name.
+    filter_map (dict): A dictionary of filter key-value pairs.
+    metastore_conn_id (str): The Airflow connection ID to use for the Hive metastore.
+
+Returns:
+    str: The maximum partition value.
+"
+"def _closest_date(target_dt, date_list, before_target=None):
+    
+    fb = lambda d: target_dt - d if d <= target_dt else datetime.timedelta.max
+    fa = lambda d: d - target_dt if d >= target_dt else datetime.timedelta.max
+    fnone = lambda d: target_dt - d if d < target_dt else d - target_dt
+    if before_target is None:
+        return min(date_list, key=fnone).date()
+    if before_target:
+        return min(date_list, key=fb).date()
+    else:
+        return min(date_list, key=fa).date()","This function finds the date in a list closest to the target date.
+    An optional parameter can be given to get the closest before or after.
+
+    :param target_dt: The target date
+    :type target_dt: datetime.date
+    :param date_list: The list of dates to search
+    :type date_list: list[datetime.date]
+    :param before_target: closest before or after the target
+    :type before_target: bool or None
+    :returns: The closest date
+    :rtype: datetime.date or None","return the closest date in date_list to target_dt. if before_target is True, return the closest date before target_dt. if before_target is False, return the closest date after target_dt."
+"def closest_ds_partition(
+        table, ds, before=True, schema=""default"",
+        metastore_conn_id='metastore_default'):
+    
+    from airflow.hooks.hive_hooks import HiveMetastoreHook
+    if '.' in table:
+        schema, table = table.split('.')
+    hh = HiveMetastoreHook(metastore_conn_id=metastore_conn_id)
+    partitions = hh.get_partitions(schema=schema, table_name=table)
+    if not partitions:
+        return None
+    part_vals = [list(p.values())[0] for p in partitions]
+    if ds in part_vals:
+        return ds
+    else:
+        parts = [datetime.datetime.strptime(pv, '%Y-%m-%d')
+                 for pv in part_vals]
+        target_dt = datetime.datetime.strptime(ds, '%Y-%m-%d')
+        closest_ds = _closest_date(target_dt, parts, before_target=before)
+        return closest_ds.isoformat()","This function finds the date in a list closest to the target date.
+    An optional parameter can be given to get the closest before or after.
+
+    :param table: A hive table name
+    :type table: str
+    :param ds: A datestamp ``%Y-%m-%d`` e.g. ``yyyy-mm-dd``
+    :type ds: list[datetime.date]
+    :param before: closest before (True), after (False) or either side of ds
+    :type before: bool or None
+    :returns: The closest date
+    :rtype: str or None
+
+    >>> tbl = 'airflow.static_babynames_partitioned'
+    >>> closest_ds_partition(tbl, '2015-01-02')
+    '2015-01-01'","Get the closest partition date to the given date.
+
+If the given date is not in the partitions, return the closest date before or after the given date.
+
+Args:
+    table (str): The table name.
+    ds (str): The date string.
+    before (bool): If True, return the closest date before the given date.
+    schema (str): The schema name.
+    metastore_conn_id (str): The metastore connection id.
+
+Returns:
+    str: The closest partition date.
+"
+"def get_conn(self):
+        
+        conn = self.get_connection(self.mysql_conn_id)
+        conn_config = {
+            ""user"": conn.login,
+            ""passwd"": conn.password or 
+        }
+
+        if not conn.port:
+            conn_config[""port""] = 3306
+        else:
+            conn_config[""port""] = int(conn.port)
+
+        if conn.extra_dejson.get('charset', False):
+            conn_config[""charset""] = conn.extra_dejson[""charset""]
+            if (conn_config[""charset""]).lower() == 'utf8' or\
+                    (conn_config[""charset""]).lower() == 'utf-8':
+                conn_config[""use_unicode""] = True
+        if conn.extra_dejson.get('cursor', False):
+            if (conn.extra_dejson[""cursor""]).lower() == 'sscursor':
+                conn_config[""cursorclass""] = MySQLdb.cursors.SSCursor
+            elif (conn.extra_dejson[""cursor""]).lower() == 'dictcursor':
+                conn_config[""cursorclass""] = MySQLdb.cursors.DictCursor
+            elif (conn.extra_dejson[""cursor""]).lower() == 'ssdictcursor':
+                conn_config[""cursorclass""] = MySQLdb.cursors.SSDictCursor
+        local_infile = conn.extra_dejson.get('local_infile', False)
+        if conn.extra_dejson.get('ssl', False):
+            # SSL parameter for MySQL has to be a dictionary and in case
+            # of extra/dejson we can get string if extra is passed via
+            # URL parameters
+            dejson_ssl = conn.extra_dejson['ssl']
+            if isinstance(dejson_ssl, six.string_types):
+                dejson_ssl = json.loads(dejson_ssl)
+            conn_config['ssl'] = dejson_ssl
+        if conn.extra_dejson.get('unix_socket'):
+            conn_config['unix_socket'] = conn.extra_dejson['unix_socket']
+        if local_infile:
+            conn_config[""local_infile""] = 1
+        conn = MySQLdb.connect(**conn_config)
+        return conn",Returns a mysql connection object,Get connection to MySQL database
+"def bulk_load(self, table, tmp_file):
+        
+        conn = self.get_conn()
+        cur = conn.cursor()
+        cur.execute(.format(tmp_file=tmp_file, table=table))
+        conn.commit()",Loads a tab-delimited file into a database table,bulk load data from tmp_file to table
+"def is_bucket_updated(self, current_num_objects):
+        
+
+        if current_num_objects > self.previous_num_objects:
+            # When new objects arrived, reset the inactivity_seconds
+            # previous_num_objects for the next poke.
+            self.log.info(
+                '.format(os.path.join(self.bucket, self.prefix)))
+            self.last_activity_time = get_time()
+            self.inactivity_seconds = 0
+            self.previous_num_objects = current_num_objects
+        elif current_num_objects < self.previous_num_objects:
+            # During the last poke interval objects were deleted.
+            if self.allow_delete:
+                self.previous_num_objects = current_num_objects
+                self.last_activity_time = get_time()
+                self.log.warning(
+                    '
+                )
+            else:
+                raise RuntimeError(
+                    '.format(os.path.join(self.bucket, self.prefix))
+                )
+        else:
+            if self.last_activity_time:
+                self.inactivity_seconds = (
+                    get_time() - self.last_activity_time).total_seconds()
+            else:
+                # Handles the first poke where last inactivity time is None.
+                self.last_activity_time = get_time()
+                self.inactivity_seconds = 0
+
+            if self.inactivity_seconds >= self.inactivity_period:
+                if current_num_objects >= self.min_objects:
+                    self.log.info(
+                        '.format(
+                            current_num_objects,
+                            os.path.join(self.bucket, self.prefix),
+                            self.inactivity_period))
+                    return True
+
+                warn_msg = \
+                    '.format(
+                        os.path.join(self.bucket, self.prefix))
+                self.log.warning(warn_msg)
+                return False
+            return False","Checks whether new objects have been uploaded and the inactivity_period
+        has passed and updates the state of the sensor accordingly.
+
+        :param current_num_objects: number of objects in bucket during last poke.
+        :type current_num_objects: int","Check if the bucket has been updated.
+
+If the number of objects in the bucket has increased, reset the inactivity_seconds
+and previous_num_objects.
+
+If the number of objects in the bucket has decreased, check if allow_delete is
+True. If it is, reset the previous_num_objects and last_activity_time. Otherwise,
+raise a RuntimeError.
+
+If the number of objects in the bucket has not changed, check if the inactivity
+period has elapsed. If it has, and the number of objects in the bucket is at
+least min_objects, return True. Otherwise, return False."
+"def sigquit_handler(sig, frame):
+    
+    print(""Dumping stack traces for all threads in PID {}"".format(os.getpid()))
+    id_to_name = dict([(th.ident, th.name) for th in threading.enumerate()])
+    code = []
+    for thread_id, stack in sys._current_frames().items():
+        code.append(""\n# Thread: {}({})""
+                    .format(id_to_name.get(thread_id, """"), thread_id))
+        for filename, line_number, name, line in traceback.extract_stack(stack):
+            code.append('File: ""{}"", line {}, in {}'
+                        .format(filename, line_number, name))
+            if line:
+                code.append(""  {}"".format(line.strip()))
+    print(""\n"".join(code))","Helps debug deadlocks by printing stacktraces when this gets a SIGQUIT
+    e.g. kill -s QUIT <PID> or CTRL+\",Handler for SIGQUIT. Dumps stack traces for all threads in the process.
+"def trigger_dag(args):
+    
+    log = LoggingMixin().log
+    try:
+        message = api_client.trigger_dag(dag_id=args.dag_id,
+                                         run_id=args.run_id,
+                                         conf=args.conf,
+                                         execution_date=args.exec_date)
+    except IOError as err:
+        log.error(err)
+        raise AirflowException(err)
+    log.info(message)","Creates a dag run for the specified dag
+    :param args:
+    :return:",Trigger a DAG.
+"def delete_dag(args):
+    
+    log = LoggingMixin().log
+    if args.yes or input(
+            ""This will drop all existing records related to the specified DAG. ""
+            ""Proceed? (y/n)"").upper() == ""Y"":
+        try:
+            message = api_client.delete_dag(dag_id=args.dag_id)
+        except IOError as err:
+            log.error(err)
+            raise AirflowException(err)
+        log.info(message)
+    else:
+        print(""Bail."")","Deletes all DB records related to the specified dag
+    :param args:
+    :return:",Delete a DAG.
+"def task_failed_deps(args):
+    
+    dag = get_dag(args)
+    task = dag.get_task(task_id=args.task_id)
+    ti = TaskInstance(task, args.execution_date)
+
+    dep_context = DepContext(deps=SCHEDULER_DEPS)
+    failed_deps = list(ti.get_failed_dep_statuses(dep_context=dep_context))
+    # TODO, Do we want to print or log this
+    if failed_deps:
+        print(""Task instance dependencies not met:"")
+        for dep in failed_deps:
+            print(""{}: {}"".format(dep.dep_name, dep.reason))
+    else:
+        print(""Task instance dependencies are all met."")","Returns the unmet dependencies for a task instance from the perspective of the
+    scheduler (i.e. why a task instance doesn't get scheduled and then queued by the
+    scheduler, and then run by an executor).
+    >>> airflow task_failed_deps tutorial sleep 2015-01-01
+    Task instance dependencies not met:
+    Dagrun Running: Task instance's dagrun did not exist: Unknown reason
+    Trigger Rule: Task's trigger rule 'all_success' requires all upstream tasks
+    to have succeeded, but found 1 non-success(es).",Prints the task instance dependencies that are not met.
+"def task_state(args):
+    
+    dag = get_dag(args)
+    task = dag.get_task(task_id=args.task_id)
+    ti = TaskInstance(task, args.execution_date)
+    print(ti.current_state())","Returns the state of a TaskInstance at the command line.
+    >>> airflow task_state tutorial sleep 2015-01-01
+    success",get task state
+"def dag_state(args):
+    
+    dag = get_dag(args)
+    dr = DagRun.find(dag.dag_id, execution_date=args.execution_date)
+    print(dr[0].state if len(dr) > 0 else None)","Returns the state of a DagRun at the command line.
+    >>> airflow dag_state tutorial 2015-01-01T00:00:00.000000
+    running",get the state of a dag run
+"def next_execution(args):
+    
+    dag = get_dag(args)
+
+    if dag.is_paused:
+        print(""[INFO] Please be reminded this DAG is PAUSED now."")
+
+    if dag.latest_execution_date:
+        next_execution_dttm = dag.following_schedule(dag.latest_execution_date)
+
+        if next_execution_dttm is None:
+            print(""[WARN] No following schedule can be found. "" +
+                  ""This DAG may have schedule interval '@once' or `None`."")
+
+        print(next_execution_dttm)
+    else:
+        print(""[WARN] Only applicable when there is execution record found for the DAG."")
+        print(None)","Returns the next execution datetime of a DAG at the command line.
+    >>> airflow next_execution tutorial
+    2018-08-31 10:38:00",Print the next execution date of the DAG.
+"def restart_workers(gunicorn_master_proc, num_workers_expected, master_timeout):
+    
+
+    def wait_until_true(fn, timeout=0):
+        
+        t = time.time()
+        while not fn():
+            if 0 < timeout <= time.time() - t:
+                raise AirflowWebServerTimeout(
+                    ""No response from gunicorn master within {0} seconds""
+                    .format(timeout))
+            time.sleep(0.1)
+
+    def start_refresh(gunicorn_master_proc):
+        batch_size = conf.getint('webserver', 'worker_refresh_batch_size')
+        log.debug('%s doing a refresh of %s workers', state, batch_size)
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+        excess = 0
+        for _ in range(batch_size):
+            gunicorn_master_proc.send_signal(signal.SIGTTIN)
+            excess += 1
+            wait_until_true(lambda: num_workers_expected + excess ==
+                            get_num_workers_running(gunicorn_master_proc),
+                            master_timeout)
+
+    try:
+        wait_until_true(lambda: num_workers_expected ==
+                        get_num_workers_running(gunicorn_master_proc),
+                        master_timeout)
+        while True:
+            num_workers_running = get_num_workers_running(gunicorn_master_proc)
+            num_ready_workers_running = \
+                get_num_ready_workers_running(gunicorn_master_proc)
+
+            state = '[{0} / {1}]'.format(num_ready_workers_running, num_workers_running)
+
+            # Whenever some workers are not ready, wait until all workers are ready
+            if num_ready_workers_running < num_workers_running:
+                log.debug('%s some workers are starting up, waiting...', state)
+                sys.stdout.flush()
+                time.sleep(1)
+
+            # Kill a worker gracefully by asking gunicorn to reduce number of workers
+            elif num_workers_running > num_workers_expected:
+                excess = num_workers_running - num_workers_expected
+                log.debug('%s killing %s workers', state, excess)
+
+                for _ in range(excess):
+                    gunicorn_master_proc.send_signal(signal.SIGTTOU)
+                    excess -= 1
+                    wait_until_true(lambda: num_workers_expected + excess ==
+                                    get_num_workers_running(gunicorn_master_proc),
+                                    master_timeout)
+
+            # Start a new worker by asking gunicorn to increase number of workers
+            elif num_workers_running == num_workers_expected:
+                refresh_interval = conf.getint('webserver', 'worker_refresh_interval')
+                log.debug(
+                    '%s sleeping for %ss starting doing a refresh...',
+                    state, refresh_interval
+                )
+                time.sleep(refresh_interval)
+                start_refresh(gunicorn_master_proc)
+
+            else:
+                # num_ready_workers_running == num_workers_running < num_workers_expected
+                log.error((
+                    ""%s some workers seem to have died and gunicorn""
+                    ""did not restart them as expected""
+                ), state)
+                time.sleep(10)
+                if len(
+                    psutil.Process(gunicorn_master_proc.pid).children()
+                ) < num_workers_expected:
+                    start_refresh(gunicorn_master_proc)
+    except (AirflowWebServerTimeout, OSError) as err:
+        log.error(err)
+        log.error(""Shutting down webserver"")
+        try:
+            gunicorn_master_proc.terminate()
+            gunicorn_master_proc.wait()
+        finally:
+            sys.exit(1)","Runs forever, monitoring the child processes of @gunicorn_master_proc and
+    restarting workers occasionally.
+    Each iteration of the loop traverses one edge of this state transition
+    diagram, where each state (node) represents
+    [ num_ready_workers_running / num_workers_running ]. We expect most time to
+    be spent in [n / n]. `bs` is the setting webserver.worker_refresh_batch_size.
+    The horizontal transition at ? happens after the new worker parses all the
+    dags (so it could take a while!)
+       V ────────────────────────────────────────────────────────────────────────┐
+    [n / n] ──TTIN──> [ [n, n+bs) / n + bs ]  ────?───> [n + bs / n + bs] ──TTOU─┘
+       ^                          ^───────────────┘
+       │
+       │      ┌────────────────v
+       └──────┴────── [ [0, n) / n ] <─── start
+    We change the number of workers by sending TTIN and TTOU to the gunicorn
+    master process, which increases and decreases the number of child workers
+    respectively. Gunicorn guarantees that on TTOU workers are terminated
+    gracefully and that the oldest worker is terminated.","Restarts workers if needed.
+
+This function is used to restart workers if needed. It does so by sending signals to the gunicorn master process.
+
+The function first waits until the number of workers running matches the expected number of workers.
+
+Then, it enters a loop that checks the number of ready workers running and the number of workers running.
+
+If the number of ready workers running is less than the number of workers running, the function waits until all workers are ready.
+
+If the number of workers running is greater than the expected number of workers, the function kills a worker gracefully by asking gunicorn to reduce the number of workers.
+
+If the number of workers running is equal to the expected number of workers, the function sleeps for a specified amount of time and then starts a new worker by asking gunicorn to increase the number of workers.
+
+If the number of ready workers running is equal to the number of workers running and is less than the expected number of workers, the function logs an error and restarts the workers.
+
+If an error occurs, the function shuts down the webserver."
+"def get_conn(self):
+        
+        if not self._client:
+            self._client = Client(credentials=self._get_credentials())
+        return self._client","Retrieves connection to Cloud Translate
+
+        :return: Google Cloud Translate client object.
+        :rtype: Client",Get a connection to the BigQuery API.
+"def translate(
+        self, values, target_language, format_=None, source_language=None, model=None
+    ):
+        
+        client = self.get_conn()
+
+        return client.translate(
+            values=values,
+            target_language=target_language,
+            format_=format_,
+            source_language=source_language,
+            model=model,
+        )","Translate a string or list of strings.
+
+        See https://cloud.google.com/translate/docs/translating-text
+
+        :type values: str or list
+        :param values: String or list of strings to translate.
+
+        :type target_language: str
+        :param target_language: The language to translate results into. This
+                                is required by the API and defaults to
+                                the target language of the current instance.
+
+        :type format_: str
+        :param format_: (Optional) One of ``text`` or ``html``, to specify
+                        if the input text is plain text or HTML.
+
+        :type source_language: str or None
+        :param source_language: (Optional) The language of the text to
+                                be translated.
+
+        :type model: str or None
+        :param model: (Optional) The model used to translate the text, such
+                      as ``'base'`` or ``'nmt'``.
+
+        :rtype: str or list
+        :returns: A list of dictionaries for each queried value. Each
+                  dictionary typically contains three keys (though not
+                  all will be present in all cases)
+
+                  * ``detectedSourceLanguage``: The detected language (as an
+                    ISO 639-1 language code) of the text.
+                  * ``translatedText``: The translation of the text into the
+                    target language.
+                  * ``input``: The corresponding input value.
+                  * ``model``: The model used to translate the text.
+
+                  If only a single value is passed, then only a single
+                  dictionary will be returned.
+        :raises: :class:`~exceptions.ValueError` if the number of
+                 values and translations differ.","Translates the given values to the target language.
+
+Args:
+    values: The values to translate.
+    target_language: The target language.
+    format_: The format of the values.
+    source_language: The source language.
+    model: The model to use for translation.
+
+Returns:
+    The translated values."
+"def execute(self, context):
+        
+        self.log.info('Tmp dir root location: \n %s', gettempdir())
+
+        # Prepare env for child process.
+        if self.env is None:
+            self.env = os.environ.copy()
+
+        airflow_context_vars = context_to_airflow_vars(context, in_env_var_format=True)
+        self.log.info('Exporting the following env vars:\n%s',
+                      '\n'.join([""{}={}"".format(k, v)
+                                 for k, v in
+                                 airflow_context_vars.items()]))
+        self.env.update(airflow_context_vars)
+
+        self.lineage_data = self.bash_command
+
+        with TemporaryDirectory(prefix='airflowtmp') as tmp_dir:
+            with NamedTemporaryFile(dir=tmp_dir, prefix=self.task_id) as tmp_file:
+                tmp_file.write(bytes(self.bash_command, 'utf_8'))
+                tmp_file.flush()
+                script_location = os.path.abspath(tmp_file.name)
+                self.log.info('Temporary script location: %s', script_location)
+
+                def pre_exec():
+                    # Restore default signal disposition and invoke setsid
+                    for sig in ('SIGPIPE', 'SIGXFZ', 'SIGXFSZ'):
+                        if hasattr(signal, sig):
+                            signal.signal(getattr(signal, sig), signal.SIG_DFL)
+                    os.setsid()
+
+                self.log.info('Running command: %s', self.bash_command)
+                sub_process = Popen(
+                    ['bash', tmp_file.name],
+                    stdout=PIPE,
+                    stderr=STDOUT,
+                    cwd=tmp_dir,
+                    env=self.env,
+                    preexec_fn=pre_exec)
+
+                self.sub_process = sub_process
+
+                self.log.info('Output:')
+                line = ):
+                    line = raw_line.decode(self.output_encoding).rstrip()
+                    self.log.info(line)
+
+                sub_process.wait()
+
+                self.log.info('Command exited with return code %s', sub_process.returncode)
+
+                if sub_process.returncode:
+                    raise AirflowException('Bash command failed')
+
+        return line","Execute the bash command in a temporary directory
+        which will be cleaned afterwards","Executes the bash command.
+
+Returns the output of the command."
+"def get_instance(self, instance, project_id=None):
+        
+        return self.get_conn().instances().get(
+            project=project_id,
+            instance=instance
+        ).execute(num_retries=self.num_retries)","Retrieves a resource containing information about a Cloud SQL instance.
+
+        :param instance: Database instance ID. This does not include the project ID.
+        :type instance: str
+        :param project_id: Project ID of the project that contains the instance. If set
+            to None or missing, the default project_id from the GCP connection is used.
+        :type project_id: str
+        :return: A Cloud SQL instance resource.
+        :rtype: dict",Get an instance by name.
+"def create_instance(self, body, project_id=None):
+        
+        response = self.get_conn().instances().insert(
+            project=project_id,
+            body=body
+        ).execute(num_retries=self.num_retries)
+        operation_name = response[""name""]
+        self._wait_for_operation_to_complete(project_id=project_id,
+                                             operation_name=operation_name)","Creates a new Cloud SQL instance.
+
+        :param body: Body required by the Cloud SQL insert API, as described in
+            https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/instances/insert#request-body.
+        :type body: dict
+        :param project_id: Project ID of the project that contains the instance. If set
+            to None or missing, the default project_id from the GCP connection is used.
+        :type project_id: str
+        :return: None","Create a new instance.
+"
+"def patch_instance(self, body, instance, project_id=None):
+        
+        response = self.get_conn().instances().patch(
+            project=project_id,
+            instance=instance,
+            body=body
+        ).execute(num_retries=self.num_retries)
+        operation_name = response[""name""]
+        self._wait_for_operation_to_complete(project_id=project_id,
+                                             operation_name=operation_name)","Updates settings of a Cloud SQL instance.
+
+        Caution: This is not a partial update, so you must include values for
+        all the settings that you want to retain.
+
+        :param body: Body required by the Cloud SQL patch API, as described in
+            https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/instances/patch#request-body.
+        :type body: dict
+        :param instance: Cloud SQL instance ID. This does not include the project ID.
+        :type instance: str
+        :param project_id: Project ID of the project that contains the instance. If set
+            to None or missing, the default project_id from the GCP connection is used.
+        :type project_id: str
+        :return: None","Patch an instance.
+
+Args:
+    body: The body of the patch request.
+    instance: The name of the instance to patch.
+    project_id: The project ID of the instance to patch.
+
+Returns:
+    The response from the patch request.
+"
+"def delete_instance(self, instance, project_id=None):
+        
+        response = self.get_conn().instances().delete(
+            project=project_id,
+            instance=instance,
+        ).execute(num_retries=self.num_retries)
+        operation_name = response[""name""]
+        self._wait_for_operation_to_complete(project_id=project_id,
+                                             operation_name=operation_name)","Deletes a Cloud SQL instance.
+
+        :param project_id: Project ID of the project that contains the instance. If set
+            to None or missing, the default project_id from the GCP connection is used.
+        :type project_id: str
+        :param instance: Cloud SQL instance ID. This does not include the project ID.
+        :type instance: str
+        :return: None","Deletes the specified instance.
+
+Args:
+    instance: The name of the instance to delete.
+    project_id: The project ID of the instance to delete.
+
+Returns:
+    None
+"
+"def get_database(self, instance, database, project_id=None):
+        
+        return self.get_conn().databases().get(
+            project=project_id,
+            instance=instance,
+            database=database
+        ).execute(num_retries=self.num_retries)","Retrieves a database resource from a Cloud SQL instance.
+
+        :param instance: Database instance ID. This does not include the project ID.
+        :type instance: str
+        :param database: Name of the database in the instance.
+        :type database: str
+        :param project_id: Project ID of the project that contains the instance. If set
+            to None or missing, the default project_id from the GCP connection is used.
+        :type project_id: str
+        :return: A Cloud SQL database resource, as described in
+            https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/databases#resource.
+        :rtype: dict","Get a database by name.
+
+Args:
+    instance: The name of the instance.
+    database: The name of the database.
+    project_id: The project ID to use.
+
+Returns:
+    A :class:`~google.cloud.spanner.database.Database` instance.
+"
+"def create_database(self, instance, body, project_id=None):
+        
+        response = self.get_conn().databases().insert(
+            project=project_id,
+            instance=instance,
+            body=body
+        ).execute(num_retries=self.num_retries)
+        operation_name = response[""name""]
+        self._wait_for_operation_to_complete(project_id=project_id,
+                                             operation_name=operation_name)","Creates a new database inside a Cloud SQL instance.
+
+        :param instance: Database instance ID. This does not include the project ID.
+        :type instance: str
+        :param body: The request body, as described in
+            https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/databases/insert#request-body.
+        :type body: dict
+        :param project_id: Project ID of the project that contains the instance. If set
+            to None or missing, the default project_id from the GCP connection is used.
+        :type project_id: str
+        :return: None","Create a database in the specified instance.
+
+Args:
+    instance: The name of the instance to create the database in.
+    body: The body of the request.
+    project_id: The project ID to create the database in.
+
+Returns:
+    The database object.
+"
+"def patch_database(self, instance, database, body, project_id=None):
+        
+        response = self.get_conn().databases().patch(
+            project=project_id,
+            instance=instance,
+            database=database,
+            body=body
+        ).execute(num_retries=self.num_retries)
+        operation_name = response[""name""]
+        self._wait_for_operation_to_complete(project_id=project_id,
+                                             operation_name=operation_name)","Updates a database resource inside a Cloud SQL instance.
+
+        This method supports patch semantics.
+        See https://cloud.google.com/sql/docs/mysql/admin-api/how-tos/performance#patch.
+
+        :param instance: Database instance ID. This does not include the project ID.
+        :type instance: str
+        :param database: Name of the database to be updated in the instance.
+        :type database: str
+        :param body: The request body, as described in
+            https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/databases/insert#request-body.
+        :type body: dict
+        :param project_id: Project ID of the project that contains the instance. If set
+            to None or missing, the default project_id from the GCP connection is used.
+        :type project_id: str
+        :return: None","Patches a database.
+"
+"def delete_database(self, instance, database, project_id=None):
+        
+        response = self.get_conn().databases().delete(
+            project=project_id,
+            instance=instance,
+            database=database
+        ).execute(num_retries=self.num_retries)
+        operation_name = response[""name""]
+        self._wait_for_operation_to_complete(project_id=project_id,
+                                             operation_name=operation_name)","Deletes a database from a Cloud SQL instance.
+
+        :param instance: Database instance ID. This does not include the project ID.
+        :type instance: str
+        :param database: Name of the database to be deleted in the instance.
+        :type database: str
+        :param project_id: Project ID of the project that contains the instance. If set
+            to None or missing, the default project_id from the GCP connection is used.
+        :type project_id: str
+        :return: None","Deletes a database.
+"
+"def export_instance(self, instance, body, project_id=None):
+        
+        try:
+            response = self.get_conn().instances().export(
+                project=project_id,
+                instance=instance,
+                body=body
+            ).execute(num_retries=self.num_retries)
+            operation_name = response[""name""]
+            self._wait_for_operation_to_complete(project_id=project_id,
+                                                 operation_name=operation_name)
+        except HttpError as ex:
+            raise AirflowException(
+                'Exporting instance {} failed: {}'.format(instance, ex.content)
+            )","Exports data from a Cloud SQL instance to a Cloud Storage bucket as a SQL dump
+        or CSV file.
+
+        :param instance: Database instance ID of the Cloud SQL instance. This does not include the
+            project ID.
+        :type instance: str
+        :param body: The request body, as described in
+            https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/instances/export#request-body
+        :type body: dict
+        :param project_id: Project ID of the project that contains the instance. If set
+            to None or missing, the default project_id from the GCP connection is used.
+        :type project_id: str
+        :return: None","Export an instance to a Google Cloud Storage bucket.
+
+Args:
+    instance (str): The name of the instance to export.
+    body (dict): The body of the export request.
+    project_id (str): The project ID to export the instance to.
+
+Raises:
+    AirflowException: If the export fails.
+"
+"def _wait_for_operation_to_complete(self, project_id, operation_name):
+        
+        service = self.get_conn()
+        while True:
+            operation_response = service.operations().get(
+                project=project_id,
+                operation=operation_name,
+            ).execute(num_retries=self.num_retries)
+            if operation_response.get(""status"") == CloudSqlOperationStatus.DONE:
+                error = operation_response.get(""error"")
+                if error:
+                    # Extracting the errors list as string and trimming square braces
+                    error_msg = str(error.get(""errors""))[1:-1]
+                    raise AirflowException(error_msg)
+                # No meaningful info to return from the response in case of success
+                return
+            time.sleep(TIME_TO_SLEEP_IN_SECONDS)","Waits for the named operation to complete - checks status of the
+        asynchronous call.
+
+        :param project_id: Project ID of the project that contains the instance.
+        :type project_id: str
+        :param operation_name: Name of the operation.
+        :type operation_name: str
+        :return: None","Waits for the operation to complete.
+"
+"def start_proxy(self):
+        
+        self._download_sql_proxy_if_needed()
+        if self.sql_proxy_process:
+            raise AirflowException(""The sql proxy is already running: {}"".format(
+                self.sql_proxy_process))
+        else:
+            command_to_run = [self.sql_proxy_path]
+            command_to_run.extend(self.command_line_parameters)
+            try:
+                self.log.info(""Creating directory %s"",
+                              self.cloud_sql_proxy_socket_directory)
+                os.makedirs(self.cloud_sql_proxy_socket_directory)
+            except OSError:
+                # Needed for python 2 compatibility (exists_ok missing)
+                pass
+            command_to_run.extend(self._get_credential_parameters())
+            self.log.info(""Running the command: `%s`"", "" "".join(command_to_run))
+            self.sql_proxy_process = Popen(command_to_run,
+                                           stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            self.log.info(""The pid of cloud_sql_proxy: %s"", self.sql_proxy_process.pid)
+            while True:
+                line = self.sql_proxy_process.stderr.readline().decode('utf-8')
+                return_code = self.sql_proxy_process.poll()
+                if line == :
+                    self.log.info(line)
+                if ""googleapi: Error"" in line or ""invalid instance name:"" in line:
+                    self.stop_proxy()
+                    raise AirflowException(
+                        ""Error when starting the cloud_sql_proxy {}!"".format(
+                            line))
+                if ""Ready for new connections"" in line:
+                    return","Starts Cloud SQL Proxy.
+
+        You have to remember to stop the proxy if you started it!",Start the cloud sql proxy.
+"def stop_proxy(self):
+        
+        if not self.sql_proxy_process:
+            raise AirflowException(""The sql proxy is not started yet"")
+        else:
+            self.log.info(""Stopping the cloud_sql_proxy pid: %s"",
+                          self.sql_proxy_process.pid)
+            self.sql_proxy_process.kill()
+            self.sql_proxy_process = None
+        # Cleanup!
+        self.log.info(""Removing the socket directory: %s"",
+                      self.cloud_sql_proxy_socket_directory)
+        shutil.rmtree(self.cloud_sql_proxy_socket_directory, ignore_errors=True)
+        if self.sql_proxy_was_downloaded:
+            self.log.info(""Removing downloaded proxy: %s"", self.sql_proxy_path)
+            # Silently ignore if the file has already been removed (concurrency)
+            try:
+                os.remove(self.sql_proxy_path)
+            except OSError as e:
+                if not e.errno == errno.ENOENT:
+                    raise
+        else:
+            self.log.info(""Skipped removing proxy - it was not downloaded: %s"",
+                          self.sql_proxy_path)
+        if os.path.isfile(self.credentials_path):
+            self.log.info(""Removing generated credentials file %s"",
+                          self.credentials_path)
+            # Here file cannot be delete by concurrent task (each task has its own copy)
+            os.remove(self.credentials_path)","Stops running proxy.
+
+        You should stop the proxy after you stop using it.",Stops the cloud sql proxy.
+"def get_proxy_version(self):
+        
+        self._download_sql_proxy_if_needed()
+        command_to_run = [self.sql_proxy_path]
+        command_to_run.extend(['--version'])
+        command_to_run.extend(self._get_credential_parameters())
+        result = subprocess.check_output(command_to_run).decode('utf-8')
+        pattern = re.compile(""^.*[V|v]ersion ([^;]*);.*$"")
+        m = pattern.match(result)
+        if m:
+            return m.group(1)
+        else:
+            return None",Returns version of the Cloud SQL Proxy.,Get the version of the SQL proxy.
+"def create_connection(self, session=None):
+        
+        connection = Connection(conn_id=self.db_conn_id)
+        uri = self._generate_connection_uri()
+        self.log.info(""Creating connection %s"", self.db_conn_id)
+        connection.parse_from_uri(uri)
+        session.add(connection)
+        session.commit()","Create connection in the Connection table, according to whether it uses
+        proxy, TCP, UNIX sockets, SSL. Connection ID will be randomly generated.
+
+        :param session: Session of the SQL Alchemy ORM (automatically generated with
+                        decorator).","Create a connection to the database.
+"
+"def retrieve_connection(self, session=None):
+        
+        self.log.info(""Retrieving connection %s"", self.db_conn_id)
+        connections = session.query(Connection).filter(
+            Connection.conn_id == self.db_conn_id)
+        if connections.count():
+            return connections[0]
+        return None","Retrieves the dynamically created connection from the Connection table.
+
+        :param session: Session of the SQL Alchemy ORM (automatically generated with
+                        decorator).",retrieve a connection from the database
+"def delete_connection(self, session=None):
+        
+        self.log.info(""Deleting connection %s"", self.db_conn_id)
+        connections = session.query(Connection).filter(
+            Connection.conn_id == self.db_conn_id)
+        if connections.count():
+            connection = connections[0]
+            session.delete(connection)
+            session.commit()
+        else:
+            self.log.info(""Connection was already deleted!"")","Delete the dynamically created connection from the Connection table.
+
+        :param session: Session of the SQL Alchemy ORM (automatically generated with
+                        decorator).",Deletes the connection from the database.
+"def get_sqlproxy_runner(self):
+        
+        if not self.use_proxy:
+            raise AirflowException(""Proxy runner can only be retrieved in case of use_proxy = True"")
+        return CloudSqlProxyRunner(
+            path_prefix=self.sql_proxy_unique_path,
+            instance_specification=self._get_sqlproxy_instance_specification(),
+            project_id=self.project_id,
+            sql_proxy_version=self.sql_proxy_version,
+            sql_proxy_binary_path=self.sql_proxy_binary_path
+        )","Retrieve Cloud SQL Proxy runner. It is used to manage the proxy
+        lifecycle per task.
+
+        :return: The Cloud SQL Proxy runner.
+        :rtype: CloudSqlProxyRunner","Returns a CloudSqlProxyRunner instance.
+
+Raises an AirflowException if use_proxy is False."
+"def get_database_hook(self):
+        
+        if self.database_type == 'postgres':
+            self.db_hook = PostgresHook(postgres_conn_id=self.db_conn_id,
+                                        schema=self.database)
+        else:
+            self.db_hook = MySqlHook(mysql_conn_id=self.db_conn_id,
+                                     schema=self.database)
+        return self.db_hook","Retrieve database hook. This is the actual Postgres or MySQL database hook
+        that uses proxy or connects directly to the Google Cloud SQL database.",get database hook based on database type
+"def cleanup_database_hook(self):
+        
+        if self.database_type == 'postgres':
+            if hasattr(self.db_hook,
+                       'conn') and self.db_hook.conn and self.db_hook.conn.notices:
+                for output in self.db_hook.conn.notices:
+                    self.log.info(output)",Clean up database hook after it was used.,"Cleanup the database hook.
+"
+"def reserve_free_tcp_port(self):
+        
+        self.reserved_tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.reserved_tcp_socket.bind(('127.0.0.1', 0))
+        self.sql_proxy_tcp_port = self.reserved_tcp_socket.getsockname()[1]",Reserve free TCP port to be used by Cloud SQL Proxy,reserve a free tcp port for sql proxy to listen on
+"def _normalize_mlengine_job_id(job_id):
+    
+
+    # Add a prefix when a job_id starts with a digit or a template
+    match = re.search(r'\d|\{{2}', job_id)
+    if match and match.start() == 0:
+        job = 'z_{}'.format(job_id)
+    else:
+        job = job_id
+
+    # Clean up 'bad' characters except templates
+    tracker = 0
+    cleansed_job_id = ''
+    for m in re.finditer(r'\{{2}.+?\}{2}', job):
+        cleansed_job_id += re.sub(r'[^0-9a-zA-Z]+', '_',
+                                  job[tracker:m.start()])
+        cleansed_job_id += job[m.start():m.end()]
+        tracker = m.end()
+
+    # Clean up last substring or the full string if no templates
+    cleansed_job_id += re.sub(r'[^0-9a-zA-Z]+', '_', job[tracker:])
+
+    return cleansed_job_id","Replaces invalid MLEngine job_id characters with '_'.
+
+    This also adds a leading 'z' in case job_id starts with an invalid
+    character.
+
+    Args:
+        job_id: A job_id str that may have invalid characters.
+
+    Returns:
+        A valid job_id representation.","Normalizes the ML Engine job ID to a string that can be used as a filename.
+
+This function is used to ensure that the job ID is a valid filename.
+
+Args:
+    job_id: The ML Engine job ID.
+
+Returns:
+    The normalized job ID."
+"def _get_error_code(self, e):
+        
+        try:
+            matches = self.error_code_pattern.match(str(e))
+            code = int(matches.group(0))
+            return code
+        except ValueError:
+            return e",Extract error code from ftp exception,Get the error code from the exception.
+"def _integrate_plugins():
+    
+    import sys
+    from airflow.plugins_manager import sensors_modules
+    for sensors_module in sensors_modules:
+        sys.modules[sensors_module.__name__] = sensors_module
+        globals()[sensors_module._name] = sensors_module",Integrate plugins to the context,Integrate sensors from plugins.
+"def clear_dag_runs():
+    
+    session = settings.Session()
+    drs = session.query(DagRun).filter(
+        DagRun.dag_id.in_(DAG_IDS),
+    ).all()
+    for dr in drs:
+        logging.info('Deleting DagRun :: {}'.format(dr))
+        session.delete(dr)",Remove any existing DAG runs for the perf test DAGs.,Deletes all DagRuns for the given DAG_IDS.
+"def clear_dag_task_instances():
+    
+    session = settings.Session()
+    TI = TaskInstance
+    tis = (
+        session
+        .query(TI)
+        .filter(TI.dag_id.in_(DAG_IDS))
+        .all()
+    )
+    for ti in tis:
+        logging.info('Deleting TaskInstance :: {}'.format(ti))
+        session.delete(ti)
+    session.commit()",Remove any existing task instances for the perf test DAGs.,Deletes all task instances for the given DAGs.
+"def set_dags_paused_state(is_paused):
+    
+    session = settings.Session()
+    dms = session.query(DagModel).filter(
+        DagModel.dag_id.in_(DAG_IDS))
+    for dm in dms:
+        logging.info('Setting DAG :: {} is_paused={}'.format(dm, is_paused))
+        dm.is_paused = is_paused
+    session.commit()",Toggle the pause state of the DAGs in the test.,Set the paused state of the DAGs in the DAG_IDS list.
+"def print_stats(self):
+        
+        session = settings.Session()
+        TI = TaskInstance
+        tis = (
+            session
+            .query(TI)
+            .filter(TI.dag_id.in_(DAG_IDS))
+            .all()
+        )
+        successful_tis = [x for x in tis if x.state == State.SUCCESS]
+        ti_perf = [(ti.dag_id, ti.task_id, ti.execution_date,
+                    (ti.queued_dttm - self.start_date).total_seconds(),
+                    (ti.start_date - self.start_date).total_seconds(),
+                    (ti.end_date - self.start_date).total_seconds(),
+                    ti.duration) for ti in successful_tis]
+        ti_perf_df = pd.DataFrame(ti_perf, columns=['dag_id', 'task_id',
+                                                    'execution_date',
+                                                    'queue_delay',
+                                                    'start_delay', 'land_time',
+                                                    'duration'])
+
+        print('Performance Results')
+        print('###################')
+        for dag_id in DAG_IDS:
+            print('DAG {}'.format(dag_id))
+            print(ti_perf_df[ti_perf_df['dag_id'] == dag_id])
+        print('###################')
+        if len(tis) > len(successful_tis):
+            print(""WARNING!! The following task instances haven't completed"")
+            print(pd.DataFrame([(ti.dag_id, ti.task_id, ti.execution_date, ti.state)
+                  for ti in filter(lambda x: x.state != State.SUCCESS, tis)],
+                  columns=['dag_id', 'task_id', 'execution_date', 'state']))
+
+        session.commit()",Print operational metrics for the scheduler test.,Print the performance results of the DAG run.
+"def heartbeat(self):
+        
+        super(SchedulerMetricsJob, self).heartbeat()
+        session = settings.Session()
+        # Get all the relevant task instances
+        TI = TaskInstance
+        successful_tis = (
+            session
+            .query(TI)
+            .filter(TI.dag_id.in_(DAG_IDS))
+            .filter(TI.state.in_([State.SUCCESS]))
+            .all()
+        )
+        session.commit()
+
+        dagbag = DagBag(SUBDIR)
+        dags = [dagbag.dags[dag_id] for dag_id in DAG_IDS]
+        # the tasks in perf_dag_1 and per_dag_2 have a daily schedule interval.
+        num_task_instances = sum([(timezone.utcnow() - task.start_date).days
+                                 for dag in dags for task in dag.tasks])
+
+        if (len(successful_tis) == num_task_instances or
+                (timezone.utcnow() - self.start_date).total_seconds() >
+                MAX_RUNTIME_SECS):
+            if len(successful_tis) == num_task_instances:
+                self.log.info(""All tasks processed! Printing stats."")
+            else:
+                self.log.info(""Test timeout reached. Printing available stats."")
+            self.print_stats()
+            set_dags_paused_state(True)
+            sys.exit()",Override the scheduler heartbeat to determine when the test is complete,Heartbeat function for the scheduler metrics job.
+"def invoke_lambda(self, payload):
+        
+
+        awslambda_conn = self.get_conn()
+
+        response = awslambda_conn.invoke(
+            FunctionName=self.function_name,
+            InvocationType=self.invocation_type,
+            LogType=self.log_type,
+            Payload=payload,
+            Qualifier=self.qualifier
+        )
+
+        return response",Invoke Lambda Function,"Invokes the lambda function with the given payload.
+"
+"def get_dag_run_state(dag_id, execution_date):
+    
+
+    dagbag = DagBag()
+
+    # Check DAG exists.
+    if dag_id not in dagbag.dags:
+        error_message = ""Dag id {} not found"".format(dag_id)
+        raise DagNotFound(error_message)
+
+    # Get DAG object and check Task Exists
+    dag = dagbag.get_dag(dag_id)
+
+    # Get DagRun object and check that it exists
+    dagrun = dag.get_dagrun(execution_date=execution_date)
+    if not dagrun:
+        error_message = ('Dag Run for date {} not found in dag {}'
+                         .format(execution_date, dag_id))
+        raise DagRunNotFound(error_message)
+
+    return {'state': dagrun.get_state()}",Return the task object identified by the given dag_id and task_id.,"Get the state of a dag run.
+"
+"def create_evaluate_ops(task_prefix,
+                        data_format,
+                        input_paths,
+                        prediction_path,
+                        metric_fn_and_keys,
+                        validate_fn,
+                        batch_prediction_job_id=None,
+                        project_id=None,
+                        region=None,
+                        dataflow_options=None,
+                        model_uri=None,
+                        model_name=None,
+                        version_name=None,
+                        dag=None):
+    
+
+    # Verify that task_prefix doesn't have any special characters except hyphen
+    # '-', which is the only allowed non-alphanumeric character by Dataflow.
+    if not re.match(r""^[a-zA-Z][-A-Za-z0-9]*$"", task_prefix):
+        raise AirflowException(
+            ""Malformed task_id for DataFlowPythonOperator (only alphanumeric ""
+            ""and hyphens are allowed but got: "" + task_prefix)
+
+    metric_fn, metric_keys = metric_fn_and_keys
+    if not callable(metric_fn):
+        raise AirflowException(""`metric_fn` param must be callable."")
+    if not callable(validate_fn):
+        raise AirflowException(""`validate_fn` param must be callable."")
+
+    if dag is not None and dag.default_args is not None:
+        default_args = dag.default_args
+        project_id = project_id or default_args.get('project_id')
+        region = region or default_args.get('region')
+        model_name = model_name or default_args.get('model_name')
+        version_name = version_name or default_args.get('version_name')
+        dataflow_options = dataflow_options or \
+            default_args.get('dataflow_default_options')
+
+    evaluate_prediction = MLEngineBatchPredictionOperator(
+        task_id=(task_prefix + ""-prediction""),
+        project_id=project_id,
+        job_id=batch_prediction_job_id,
+        region=region,
+        data_format=data_format,
+        input_paths=input_paths,
+        output_path=prediction_path,
+        uri=model_uri,
+        model_name=model_name,
+        version_name=version_name,
+        dag=dag)
+
+    metric_fn_encoded = base64.b64encode(dill.dumps(metric_fn, recurse=True))
+    evaluate_summary = DataFlowPythonOperator(
+        task_id=(task_prefix + ""-summary""),
+        py_options=[""-m""],
+        py_file=""airflow.contrib.utils.mlengine_prediction_summary"",
+        dataflow_default_options=dataflow_options,
+        options={
+            ""prediction_path"": prediction_path,
+            ""metric_fn_encoded"": metric_fn_encoded,
+            ""metric_keys"": ','.join(metric_keys)
+        },
+        dag=dag)
+    evaluate_summary.set_upstream(evaluate_prediction)
+
+    def apply_validate_fn(*args, **kwargs):
+        prediction_path = kwargs[""templates_dict""][""prediction_path""]
+        scheme, bucket, obj, _, _ = urlsplit(prediction_path)
+        if scheme != ""gs"" or not bucket or not obj:
+            raise ValueError(""Wrong format prediction_path: %s"",
+                             prediction_path)
+        summary = os.path.join(obj.strip(""/""),
+                               ""prediction.summary.json"")
+        gcs_hook = GoogleCloudStorageHook()
+        summary = json.loads(gcs_hook.download(bucket, summary))
+        return validate_fn(summary)
+
+    evaluate_validation = PythonOperator(
+        task_id=(task_prefix + ""-validation""),
+        python_callable=apply_validate_fn,
+        provide_context=True,
+        templates_dict={""prediction_path"": prediction_path},
+        dag=dag)
+    evaluate_validation.set_upstream(evaluate_summary)
+
+    return evaluate_prediction, evaluate_summary, evaluate_validation","Creates Operators needed for model evaluation and returns.
+
+    It gets prediction over inputs via Cloud ML Engine BatchPrediction API by
+    calling MLEngineBatchPredictionOperator, then summarize and validate
+    the result via Cloud Dataflow using DataFlowPythonOperator.
+
+    For details and pricing about Batch prediction, please refer to the website
+    https://cloud.google.com/ml-engine/docs/how-tos/batch-predict
+    and for Cloud Dataflow, https://cloud.google.com/dataflow/docs/
+
+    It returns three chained operators for prediction, summary, and validation,
+    named as <prefix>-prediction, <prefix>-summary, and <prefix>-validation,
+    respectively.
+    (<prefix> should contain only alphanumeric characters or hyphen.)
+
+    The upstream and downstream can be set accordingly like:
+      pred, _, val = create_evaluate_ops(...)
+      pred.set_upstream(upstream_op)
+      ...
+      downstream_op.set_upstream(val)
+
+    Callers will provide two python callables, metric_fn and validate_fn, in
+    order to customize the evaluation behavior as they wish.
+    - metric_fn receives a dictionary per instance derived from json in the
+      batch prediction result. The keys might vary depending on the model.
+      It should return a tuple of metrics.
+    - validation_fn receives a dictionary of the averaged metrics that metric_fn
+      generated over all instances.
+      The key/value of the dictionary matches to what's given by
+      metric_fn_and_keys arg.
+      The dictionary contains an additional metric, 'count' to represent the
+      total number of instances received for evaluation.
+      The function would raise an exception to mark the task as failed, in a
+      case the validation result is not okay to proceed (i.e. to set the trained
+      version as default).
+
+    Typical examples are like this:
+
+    def get_metric_fn_and_keys():
+        import math  # imports should be outside of the metric_fn below.
+        def error_and_squared_error(inst):
+            label = float(inst['input_label'])
+            classes = float(inst['classes'])  # 0 or 1
+            err = abs(classes-label)
+            squared_err = math.pow(classes-label, 2)
+            return (err, squared_err)  # returns a tuple.
+        return error_and_squared_error, ['err', 'mse']  # key order must match.
+
+    def validate_err_and_count(summary):
+        if summary['err'] > 0.2:
+            raise ValueError('Too high err>0.2; summary=%s' % summary)
+        if summary['mse'] > 0.05:
+            raise ValueError('Too high mse>0.05; summary=%s' % summary)
+        if summary['count'] < 1000:
+            raise ValueError('Too few instances<1000; summary=%s' % summary)
+        return summary
+
+    For the details on the other BatchPrediction-related arguments (project_id,
+    job_id, region, data_format, input_paths, prediction_path, model_uri),
+    please refer to MLEngineBatchPredictionOperator too.
+
+    :param task_prefix: a prefix for the tasks. Only alphanumeric characters and
+        hyphen are allowed (no underscores), since this will be used as dataflow
+        job name, which doesn't allow other characters.
+    :type task_prefix: str
+
+    :param data_format: either of 'TEXT', 'TF_RECORD', 'TF_RECORD_GZIP'
+    :type data_format: str
+
+    :param input_paths: a list of input paths to be sent to BatchPrediction.
+    :type input_paths: list[str]
+
+    :param prediction_path: GCS path to put the prediction results in.
+    :type prediction_path: str
+
+    :param metric_fn_and_keys: a tuple of metric_fn and metric_keys:
+        - metric_fn is a function that accepts a dictionary (for an instance),
+          and returns a tuple of metric(s) that it calculates.
+        - metric_keys is a list of strings to denote the key of each metric.
+    :type metric_fn_and_keys: tuple of a function and a list[str]
+
+    :param validate_fn: a function to validate whether the averaged metric(s) is
+        good enough to push the model.
+    :type validate_fn: function
+
+    :param batch_prediction_job_id: the id to use for the Cloud ML Batch
+        prediction job. Passed directly to the MLEngineBatchPredictionOperator as
+        the job_id argument.
+    :type batch_prediction_job_id: str
+
+    :param project_id: the Google Cloud Platform project id in which to execute
+        Cloud ML Batch Prediction and Dataflow jobs. If None, then the `dag`'s
+        `default_args['project_id']` will be used.
+    :type project_id: str
+
+    :param region: the Google Cloud Platform region in which to execute Cloud ML
+        Batch Prediction and Dataflow jobs. If None, then the `dag`'s
+        `default_args['region']` will be used.
+    :type region: str
+
+    :param dataflow_options: options to run Dataflow jobs. If None, then the
+        `dag`'s `default_args['dataflow_default_options']` will be used.
+    :type dataflow_options: dictionary
+
+    :param model_uri: GCS path of the model exported by Tensorflow using
+        tensorflow.estimator.export_savedmodel(). It cannot be used with
+        model_name or version_name below. See MLEngineBatchPredictionOperator for
+        more detail.
+    :type model_uri: str
+
+    :param model_name: Used to indicate a model to use for prediction. Can be
+        used in combination with version_name, but cannot be used together with
+        model_uri. See MLEngineBatchPredictionOperator for more detail. If None,
+        then the `dag`'s `default_args['model_name']` will be used.
+    :type model_name: str
+
+    :param version_name: Used to indicate a model version to use for prediction,
+        in combination with model_name. Cannot be used together with model_uri.
+        See MLEngineBatchPredictionOperator for more detail. If None, then the
+        `dag`'s `default_args['version_name']` will be used.
+    :type version_name: str
+
+    :param dag: The `DAG` to use for all Operators.
+    :type dag: airflow.models.DAG
+
+    :returns: a tuple of three operators, (prediction, summary, validation)
+    :rtype: tuple(DataFlowPythonOperator, DataFlowPythonOperator,
+                  PythonOperator)","Create ML Engine evaluate tasks.
+
+Args:
+    task_prefix: Prefix for the task names.
+    data_format: Data format of the input data.
+    input_paths: Input paths to the data.
+    prediction_path: Output path for the prediction results.
+    metric_fn_and_keys: A tuple of (metric_fn, metric_keys).
+    validate_fn: A function to validate the prediction results.
+    batch_prediction_job_id: The ID of the batch prediction job.
+    project_id: The project ID.
+    region: The region.
+    dataflow_options: Dataflow options.
+    model_uri: The URI of the model.
+    model_name: The name of the model.
+    version_name: The version name of the model.
+    dag: The DAG object.
+
+Returns:
+    A tuple of (evaluate_prediction, evaluate_summary, evaluate_validation) tasks.
+"
+"def mkdirs(path, mode):
+    
+    try:
+        o_umask = os.umask(0)
+        os.makedirs(path, mode)
+    except OSError:
+        if not os.path.isdir(path):
+            raise
+    finally:
+        os.umask(o_umask)","Creates the directory specified by path, creating intermediate directories
+    as necessary. If directory already exists, this is a no-op.
+
+    :param path: The directory to create
+    :type path: str
+    :param mode: The mode to give to the directory e.g. 0o755, ignores umask
+    :type mode: int","Create a directory and all parent directories if they don't exist.
+"
+"def _convert_to_float_if_possible(s):
+    
+    try:
+        ret = float(s)
+    except (ValueError, TypeError):
+        ret = s
+    return ret","A small helper function to convert a string to a numeric value
+    if appropriate
+
+    :param s: the string to be converted
+    :type s: str","Convert a string to a float if possible, otherwise return the string."
+"def utcnow():
+    
+
+    # pendulum utcnow() is not used as that sets a TimezoneInfo object
+    # instead of a Timezone. This is not pickable and also creates issues
+    # when using replace()
+    d = dt.datetime.utcnow()
+    d = d.replace(tzinfo=utc)
+
+    return d","Get the current date and time in UTC
+    :return:","Returns a UTC datetime object.
+
+This is used to ensure that all datetime objects are in UTC.
+
+Note that pendulum utcnow() is not used as that sets a TimezoneInfo object
+instead of a Timezone. This is not pickable and also creates issues
+when using replace()."
+"def utc_epoch():
+    
+
+    # pendulum utcnow() is not used as that sets a TimezoneInfo object
+    # instead of a Timezone. This is not pickable and also creates issues
+    # when using replace()
+    d = dt.datetime(1970, 1, 1)
+    d = d.replace(tzinfo=utc)
+
+    return d","Gets the epoch in the users timezone
+    :return:",Returns a UTC datetime object for the epoch (1970-01-01 00:00:00)
+"def convert_to_utc(value):
+    
+    if not value:
+        return value
+
+    if not is_localized(value):
+        value = pendulum.instance(value, TIMEZONE)
+
+    return value.astimezone(utc)","Returns the datetime with the default timezone added if timezone
+    information was not associated
+    :param value: datetime
+    :return: datetime with tzinfo","Convert a date/time to UTC
+
+If the value is not a datetime object, it will be converted to a datetime object in the default timezone.
+
+If the value is not a localized datetime object, it will be converted to a localized datetime object in the default timezone.
+
+The value will then be converted to UTC."
+"def make_aware(value, timezone=None):
+    
+    if timezone is None:
+        timezone = TIMEZONE
+
+    # Check that we won't overwrite the timezone of an aware datetime.
+    if is_localized(value):
+        raise ValueError(
+            ""make_aware expects a naive datetime, got %s"" % value)
+    if hasattr(value, 'fold'):
+        # In case of python 3.6 we want to do the same that pendulum does for python3.5
+        # i.e in case we move clock back we want to schedule the run at the time of the second
+        # instance of the same clock time rather than the first one.
+        # Fold parameter has no impact in other cases so we can safely set it to 1 here
+        value = value.replace(fold=1)
+    if hasattr(timezone, 'localize'):
+        # This method is available for pytz time zones.
+        return timezone.localize(value)
+    elif hasattr(timezone, 'convert'):
+        # For pendulum
+        return timezone.convert(value)
+    else:
+        # This may be wrong around DST changes!
+        return value.replace(tzinfo=timezone)","Make a naive datetime.datetime in a given time zone aware.
+
+    :param value: datetime
+    :param timezone: timezone
+    :return: localized datetime in settings.TIMEZONE or timezone","Make a naive datetime aware.
+
+If timezone is None, use the default timezone.
+
+Raises ValueError if value is already aware."
+"def make_naive(value, timezone=None):
+    
+    if timezone is None:
+        timezone = TIMEZONE
+
+    # Emulate the behavior of astimezone() on Python < 3.6.
+    if is_naive(value):
+        raise ValueError(""make_naive() cannot be applied to a naive datetime"")
+
+    o = value.astimezone(timezone)
+
+    # cross library compatibility
+    naive = dt.datetime(o.year,
+                        o.month,
+                        o.day,
+                        o.hour,
+                        o.minute,
+                        o.second,
+                        o.microsecond)
+
+    return naive","Make an aware datetime.datetime naive in a given time zone.
+
+    :param value: datetime
+    :param timezone: timezone
+    :return: naive datetime","Convert a timezone-aware datetime to a naive datetime.
+
+If the input datetime is naive, raise a ValueError."
+"def datetime(*args, **kwargs):
+    
+    if 'tzinfo' not in kwargs:
+        kwargs['tzinfo'] = TIMEZONE
+
+    return dt.datetime(*args, **kwargs)","Wrapper around datetime.datetime that adds settings.TIMEZONE if tzinfo not specified
+
+    :return: datetime.datetime",Returns a datetime object with the timezone set to the default timezone.
+"def _set_env_from_extras(self, extras):
+        
+        key_path = self._get_field(extras, 'key_path', False)
+        keyfile_json_str = self._get_field(extras, 'keyfile_dict', False)
+
+        if not key_path and not keyfile_json_str:
+            self.log.info('Using gcloud with application default credentials.')
+        elif key_path:
+            os.environ[G_APP_CRED] = key_path
+        else:
+            # Write service account JSON to secure file for gcloud to reference
+            service_key = tempfile.NamedTemporaryFile(delete=False)
+            service_key.write(keyfile_json_str)
+            os.environ[G_APP_CRED] = service_key.name
+            # Return file object to have a pointer to close after use,
+            # thus deleting from file system.
+            return service_key","Sets the environment variable `GOOGLE_APPLICATION_CREDENTIALS` with either:
+
+        - The path to the keyfile from the specified connection id
+        - A generated file's path if the user specified JSON in the connection id. The
+            file is assumed to be deleted after the process dies due to how mkstemp()
+            works.
+
+        The environment variable is used inside the gcloud command to determine correct
+        service account to use.",Set environment variables for gcloud based on extras.
+"def _get_field(self, extras, field, default=None):
+        
+        long_f = 'extra__google_cloud_platform__{}'.format(field)
+        if long_f in extras:
+            return extras[long_f]
+        else:
+            self.log.info('Field %s not found in extras.', field)
+            return default","Fetches a field from extras, and returns it. This is some Airflow
+        magic. The google_cloud_platform hook type adds custom UI elements
+        to the hook page, which allow admins to specify service_account,
+        key_path, etc. They get formatted as shown below.","Get a field from the extras dict, with a default value if not found."
+"def get_conn(self):
+        
+        conn = self.get_connection(self.druid_broker_conn_id)
+        druid_broker_conn = connect(
+            host=conn.host,
+            port=conn.port,
+            path=conn.extra_dejson.get('endpoint', '/druid/v2/sql'),
+            scheme=conn.extra_dejson.get('schema', 'http')
+        )
+        self.log.info('Get the connection to druid broker on %s', conn.host)
+        return druid_broker_conn",Establish a connection to druid broker.,Get the connection to druid broker
+"def get_conn(self, headers=None):
+        
+        session = requests.Session()
+        if self.http_conn_id:
+            conn = self.get_connection(self.http_conn_id)
+
+            if "":                self.base_url = conn.host
+            else:
+                # schema defaults to HTTP
+                schema = conn.schema if conn.schema else ""http""
+                self.base_url = schema + "":
+            if conn.port:
+                self.base_url = self.base_url + "":"" + str(conn.port)
+            if conn.login:
+                session.auth = (conn.login, conn.password)
+            if conn.extra:
+                try:
+                    session.headers.update(conn.extra_dejson)
+                except TypeError:
+                    self.log.warn('Connection to %s has invalid extra field.', conn.host)
+        if headers:
+            session.headers.update(headers)
+
+        return session","Returns http session for use with requests
+
+        :param headers: additional headers to be passed through as a dictionary
+        :type headers: dict","Get a requests.Session object for the connection.
+
+If a connection ID is specified, use it to get the connection object from the
+connection manager. If no connection ID is specified, use the default connection
+ID.
+
+The session object is configured with the connection's login, password, and
+headers."
+"def run(self, endpoint, data=None, headers=None, extra_options=None):
+        
+        extra_options = extra_options or {}
+
+        session = self.get_conn(headers)
+
+        if self.base_url and not self.base_url.endswith('/') and \
+           endpoint and not endpoint.startswith('/'):
+            url = self.base_url + '/' + endpoint
+        else:
+            url = (self.base_url or )
+
+        req = None
+        if self.method == 'GET':
+            # GET uses params
+            req = requests.Request(self.method,
+                                   url,
+                                   params=data,
+                                   headers=headers)
+        elif self.method == 'HEAD':
+            # HEAD doesn't use params
+            req = requests.Request(self.method,
+                                   url,
+                                   headers=headers)
+        else:
+            # Others use data
+            req = requests.Request(self.method,
+                                   url,
+                                   data=data,
+                                   headers=headers)
+
+        prepped_request = session.prepare_request(req)
+        self.log.info(""Sending '%s' to url: %s"", self.method, url)
+        return self.run_and_check(session, prepped_request, extra_options)","Performs the request
+
+        :param endpoint: the endpoint to be called i.e. resource/v1/query?
+        :type endpoint: str
+        :param data: payload to be uploaded or request parameters
+        :type data: dict
+        :param headers: additional headers to be passed through as a dictionary
+        :type headers: dict
+        :param extra_options: additional options to be used when executing the request
+            i.e. {'check_response': False} to avoid checking raising exceptions on non
+            2XX or 3XX status codes
+        :type extra_options: dict",Sends a request to the server and returns the response.
+"def check_response(self, response):
+        
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            self.log.error(""HTTP error: %s"", response.reason)
+            if self.method not in ['GET', 'HEAD']:
+                self.log.error(response.text)
+            raise AirflowException(str(response.status_code) + "":"" + response.reason)","Checks the status code and raise an AirflowException exception on non 2XX or 3XX
+        status codes
+
+        :param response: A requests response object
+        :type response: requests.response",Check the response for errors
+"def run_and_check(self, session, prepped_request, extra_options):
+        
+        extra_options = extra_options or {}
+
+        try:
+            response = session.send(
+                prepped_request,
+                stream=extra_options.get(""stream"", False),
+                verify=extra_options.get(""verify"", True),
+                proxies=extra_options.get(""proxies"", {}),
+                cert=extra_options.get(""cert""),
+                timeout=extra_options.get(""timeout""),
+                allow_redirects=extra_options.get(""allow_redirects"", True))
+
+            if extra_options.get('check_response', True):
+                self.check_response(response)
+            return response
+
+        except requests.exceptions.ConnectionError as ex:
+            self.log.warn(str(ex) + ' Tenacity will retry to execute the operation')
+            raise ex","Grabs extra options like timeout and actually runs the request,
+        checking for the result
+
+        :param session: the session to be used to execute the request
+        :type session: requests.Session
+        :param prepped_request: the prepared request generated in run()
+        :type prepped_request: session.prepare_request
+        :param extra_options: additional options to be used when executing the request
+            i.e. {'check_response': False} to avoid checking raising exceptions on non 2XX
+            or 3XX status codes
+        :type extra_options: dict",Executes the request and checks the response.
+"def run_with_advanced_retry(self, _retry_args, *args, **kwargs):
+        
+        self._retry_obj = tenacity.Retrying(
+            **_retry_args
+        )
+
+        self._retry_obj(self.run, *args, **kwargs)","Runs Hook.run() with a Tenacity decorator attached to it. This is useful for
+        connectors which might be disturbed by intermittent issues and should not
+        instantly fail.
+
+        :param _retry_args: Arguments which define the retry behaviour.
+            See Tenacity documentation at https://github.com/jd/tenacity
+        :type _retry_args: dict
+
+
+        :Example::
+
+            hook = HttpHook(http_conn_id='my_conn',method='GET')
+            retry_args = dict(
+                 wait=tenacity.wait_exponential(),
+                 stop=tenacity.stop_after_attempt(10),
+                 retry=requests.exceptions.ConnectionError
+             )
+             hook.run_with_advanced_retry(
+                     endpoint='v1/test',
+                     _retry_args=retry_args
+                 )",Retry the run method with the given retry args
+"def create_session():
+    
+    session = settings.Session()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()",Contextmanager that will create and teardown a session.,create a session and commit it
+"def provide_session(func):
+    
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        arg_session = 'session'
+
+        func_params = func.__code__.co_varnames
+        session_in_args = arg_session in func_params and \
+            func_params.index(arg_session) < len(args)
+        session_in_kwargs = arg_session in kwargs
+
+        if session_in_kwargs or session_in_args:
+            return func(*args, **kwargs)
+        else:
+            with create_session() as session:
+                kwargs[arg_session] = session
+                return func(*args, **kwargs)
+
+    return wrapper","Function decorator that provides a session if it isn't provided.
+    If you want to reuse a session or run the function as part of a
+    database transaction, you pass it to the function, if not this wrapper
+    will create one and close it for you.","Decorator to provide a session to a function.
+
+If the function has a `session` argument, it will be used. Otherwise, a
+session will be created and passed to the function."
+"def resetdb():
+    
+    from airflow import models
+
+    # alembic adds significant import time, so we import it lazily
+    from alembic.migration import MigrationContext
+
+    log.info(""Dropping tables that exist"")
+
+    models.base.Base.metadata.drop_all(settings.engine)
+    mc = MigrationContext.configure(settings.engine)
+    if mc._version.exists(settings.engine):
+        mc._version.drop(settings.engine)
+
+    from flask_appbuilder.models.sqla import Base
+    Base.metadata.drop_all(settings.engine)
+
+    initdb()",Clear out the database,Drop all tables and recreate them
+"def execute(self, context):
+        
+        hook = WasbHook(wasb_conn_id=self.wasb_conn_id)
+        self.log.info(
+            'Uploading %s to wasb:            'as %s'.format(self.file_path, self.container_name, self.blob_name)
+        )
+        hook.load_file(self.file_path, self.container_name,
+                       self.blob_name, **self.load_options)",Upload a file to Azure Blob Storage.,Executes the action.
+"def get_conn(self):
+        
+        db = self.get_connection(self.presto_conn_id)
+        reqkwargs = None
+        if db.password is not None:
+            reqkwargs = {'auth': HTTPBasicAuth(db.login, db.password)}
+        return presto.connect(
+            host=db.host,
+            port=db.port,
+            username=db.login,
+            source=db.extra_dejson.get('source', 'airflow'),
+            protocol=db.extra_dejson.get('protocol', 'http'),
+            catalog=db.extra_dejson.get('catalog', 'hive'),
+            requests_kwargs=reqkwargs,
+            schema=db.schema)",Returns a connection object,Get a Presto connection.
+"def _get_pretty_exception_message(e):
+        
+        if (hasattr(e, 'message') and
+            'errorName' in e.message and
+                'message' in e.message):
+            return ('{name}: {message}'.format(
+                    name=e.message['errorName'],
+                    message=e.message['message']))
+        else:
+            return str(e)",Parses some DatabaseError to provide a better error message,"Get a pretty exception message.
+
+If the exception has a message attribute with an errorName and message,
+return a string with the errorName and message. Otherwise, return the
+exception string."
+"def get_records(self, hql, parameters=None):
+        
+        try:
+            return super().get_records(
+                self._strip_sql(hql), parameters)
+        except DatabaseError as e:
+            raise PrestoException(self._get_pretty_exception_message(e))",Get a set of records from Presto,"Get records from Presto.
+
+Args:
+    hql: The SQL query to execute.
+    parameters: The parameters to pass to the query.
+
+Returns:
+    A list of records.
+
+Raises:
+    PrestoException: If an error occurs."
+"def get_pandas_df(self, hql, parameters=None):
+        
+        import pandas
+        cursor = self.get_cursor()
+        try:
+            cursor.execute(self._strip_sql(hql), parameters)
+            data = cursor.fetchall()
+        except DatabaseError as e:
+            raise PrestoException(self._get_pretty_exception_message(e))
+        column_descriptions = cursor.description
+        if data:
+            df = pandas.DataFrame(data)
+            df.columns = [c[0] for c in column_descriptions]
+        else:
+            df = pandas.DataFrame()
+        return df",Get a pandas dataframe from a sql query.,Get a pandas dataframe from the presto database.
+"def run(self, hql, parameters=None):
+        
+        return super().run(self._strip_sql(hql), parameters)",Execute the statement against Presto. Can be used to create views.,run the hql query
+"def insert_rows(self, table, rows, target_fields=None):
+        
+        super().insert_rows(table, rows, target_fields, 0)","A generic way to insert a set of tuples into a table.
+
+        :param table: Name of the target table
+        :type table: str
+        :param rows: The rows to insert into the table
+        :type rows: iterable of tuples
+        :param target_fields: The names of the columns to fill in the table
+        :type target_fields: iterable of strings","insert rows into the table, starting at the given row"
+"def get_conn(self):
+        
+        if self.cosmos_client is not None:
+            return self.cosmos_client
+
+        # Initialize the Python Azure Cosmos DB client
+        self.cosmos_client = cosmos_client.CosmosClient(self.endpoint_uri, {'masterKey': self.master_key})
+
+        return self.cosmos_client",Return a cosmos db client.,"Get the Cosmos DB client. If it has already been initialized, return it. Otherwise, initialize it and return it."
+"def does_collection_exist(self, collection_name, database_name=None):
+        
+        if collection_name is None:
+            raise AirflowBadRequest(""Collection name cannot be None."")
+
+        existing_container = list(self.get_conn().QueryContainers(
+            get_database_link(self.__get_database_name(database_name)), {
+                ""query"": ""SELECT * FROM r WHERE r.id=@id"",
+                ""parameters"": [
+                    {""name"": ""@id"", ""value"": collection_name}
+                ]
+            }))
+        if len(existing_container) == 0:
+            return False
+
+        return True",Checks if a collection exists in CosmosDB.,Check if a collection exists in the database.
+"def create_collection(self, collection_name, database_name=None):
+        
+        if collection_name is None:
+            raise AirflowBadRequest(""Collection name cannot be None."")
+
+        # We need to check to see if this container already exists so we don't try
+        # to create it twice
+        existing_container = list(self.get_conn().QueryContainers(
+            get_database_link(self.__get_database_name(database_name)), {
+                ""query"": ""SELECT * FROM r WHERE r.id=@id"",
+                ""parameters"": [
+                    {""name"": ""@id"", ""value"": collection_name}
+                ]
+            }))
+
+        # Only create if we did not find it already existing
+        if len(existing_container) == 0:
+            self.get_conn().CreateContainer(
+                get_database_link(self.__get_database_name(database_name)),
+                {""id"": collection_name})",Creates a new collection in the CosmosDB database.,"Creates a new collection in the database.
+
+Args:
+    collection_name (str): The name of the collection to create.
+    database_name (str): The name of the database to create the collection in.
+        If None, the default database will be used.
+
+Raises:
+    AirflowBadRequest: If the collection name is None.
+"
+"def does_database_exist(self, database_name):
+        
+        if database_name is None:
+            raise AirflowBadRequest(""Database name cannot be None."")
+
+        existing_database = list(self.get_conn().QueryDatabases({
+            ""query"": ""SELECT * FROM r WHERE r.id=@id"",
+            ""parameters"": [
+                {""name"": ""@id"", ""value"": database_name}
+            ]
+        }))
+        if len(existing_database) == 0:
+            return False
+
+        return True",Checks if a database exists in CosmosDB.,Check if a database exists in the database.
+"def create_database(self, database_name):
+        
+        if database_name is None:
+            raise AirflowBadRequest(""Database name cannot be None."")
+
+        # We need to check to see if this database already exists so we don't try
+        # to create it twice
+        existing_database = list(self.get_conn().QueryDatabases({
+            ""query"": ""SELECT * FROM r WHERE r.id=@id"",
+            ""parameters"": [
+                {""name"": ""@id"", ""value"": database_name}
+            ]
+        }))
+
+        # Only create if we did not find it already existing
+        if len(existing_database) == 0:
+            self.get_conn().CreateDatabase({""id"": database_name})",Creates a new database in CosmosDB.,Creates a database with the given name.
+"def delete_database(self, database_name):
+        
+        if database_name is None:
+            raise AirflowBadRequest(""Database name cannot be None."")
+
+        self.get_conn().DeleteDatabase(get_database_link(database_name))",Deletes an existing database in CosmosDB.,"Deletes a database.
+"
+"def delete_collection(self, collection_name, database_name=None):
+        
+        if collection_name is None:
+            raise AirflowBadRequest(""Collection name cannot be None."")
+
+        self.get_conn().DeleteContainer(
+            get_collection_link(self.__get_database_name(database_name), collection_name))",Deletes an existing collection in the CosmosDB database.,"Deletes a collection from the Cosmos DB database.
+
+Args:
+    collection_name (str): The name of the collection to delete.
+    database_name (str): The name of the database containing the collection.
+
+Raises:
+    AirflowBadRequest: If the collection name is None.
+    AirflowException: If the collection could not be deleted."
+"def upsert_document(self, document, database_name=None, collection_name=None, document_id=None):
+        
+        # Assign unique ID if one isn't provided
+        if document_id is None:
+            document_id = str(uuid.uuid4())
+
+        if document is None:
+            raise AirflowBadRequest(""You cannot insert a None document"")
+
+        # Add document id if isn't found
+        if 'id' in document:
+            if document['id'] is None:
+                document['id'] = document_id
+        else:
+            document['id'] = document_id
+
+        created_document = self.get_conn().CreateItem(
+            get_collection_link(
+                self.__get_database_name(database_name),
+                self.__get_collection_name(collection_name)),
+            document)
+
+        return created_document","Inserts a new document (or updates an existing one) into an existing
+        collection in the CosmosDB database.","Upserts a document into the database. If the document already exists, it will be updated. If the document does not exist, it will be created.
+"
+"def insert_documents(self, documents, database_name=None, collection_name=None):
+        
+        if documents is None:
+            raise AirflowBadRequest(""You cannot insert empty documents"")
+
+        created_documents = []
+        for single_document in documents:
+            created_documents.append(
+                self.get_conn().CreateItem(
+                    get_collection_link(
+                        self.__get_database_name(database_name),
+                        self.__get_collection_name(collection_name)),
+                    single_document))
+
+        return created_documents",Insert a list of new documents into an existing collection in the CosmosDB database.,"Inserts a list of documents into a collection.
+
+Args:
+    documents: A list of documents to insert.
+    database_name: The name of the database to insert the documents into.
+    collection_name: The name of the collection to insert the documents into.
+
+Returns:
+    A list of the created documents."
+"def delete_document(self, document_id, database_name=None, collection_name=None):
+        
+        if document_id is None:
+            raise AirflowBadRequest(""Cannot delete a document without an id"")
+
+        self.get_conn().DeleteItem(
+            get_document_link(
+                self.__get_database_name(database_name),
+                self.__get_collection_name(collection_name),
+                document_id))",Delete an existing document out of a collection in the CosmosDB database.,"Deletes a document from the database.
+
+Args:
+    document_id: The id of the document to delete.
+    database_name: The name of the database the document is in.
+    collection_name: The name of the collection the document is in.
+
+Raises:
+    AirflowBadRequest: If the document_id is None.
+"
+"def get_document(self, document_id, database_name=None, collection_name=None):
+        
+        if document_id is None:
+            raise AirflowBadRequest(""Cannot get a document without an id"")
+
+        try:
+            return self.get_conn().ReadItem(
+                get_document_link(
+                    self.__get_database_name(database_name),
+                    self.__get_collection_name(collection_name),
+                    document_id))
+        except HTTPFailure:
+            return None",Get a document from an existing collection in the CosmosDB database.,"Get a document from the database.
+"
+"def get_documents(self, sql_string, database_name=None, collection_name=None, partition_key=None):
+        
+        if sql_string is None:
+            raise AirflowBadRequest(""SQL query string cannot be None"")
+
+        # Query them in SQL
+        query = {'query': sql_string}
+
+        try:
+            result_iterable = self.get_conn().QueryItems(
+                get_collection_link(
+                    self.__get_database_name(database_name),
+                    self.__get_collection_name(collection_name)),
+                query,
+                partition_key)
+
+            return list(result_iterable)
+        except HTTPFailure:
+            return None",Get a list of documents from an existing collection in the CosmosDB database via SQL query.,Get documents from Cosmos DB using SQL query
+"def get_code(dag_id):
+    
+    session = settings.Session()
+    DM = models.DagModel
+    dag = session.query(DM).filter(DM.dag_id == dag_id).first()
+    session.close()
+    # Check DAG exists.
+    if dag is None:
+        error_message = ""Dag id {} not found"".format(dag_id)
+        raise DagNotFound(error_message)
+
+    try:
+        with wwwutils.open_maybe_zipped(dag.fileloc, 'r') as f:
+            code = f.read()
+            return code
+    except IOError as e:
+        error_message = ""Error {} while reading Dag id {} Code"".format(str(e), dag_id)
+        raise AirflowException(error_message)",Return python code of a given dag_id.,Get the code for a DAG.

@@ -1,0 +1,55 @@
+SQL Command,Comment,in-context-GeneratedComment
+"CREATE TABLE customers (customer_id INT PRIMARY KEY AUTO_INCREMENT, first_name VARCHAR(50) NOT NULL, last_name VARCHAR(50) NOT NULL, email VARCHAR(100) UNIQUE NOT NULL)",Creates a table named 'customers' with the specified columns and constraints,"-- Comments:
+-- * Creates a table called customers.
+-- * The customer_id column is the primary key and is auto-incremented.
+-- * The first_name and last_name columns are required and cannot be null.
+-- * The email column is unique and cannot be null."
+ALTER TABLE customers ADD COLUMN phone_number VARCHAR(20) AFTER email,Adds a new column named 'phone_number' to the 'customers' table,"-- Comments:
+-- * Adds a new column to the customers table called phone_number.
+-- * The column is a varchar(20) type, which allows for up to 20 characters.
+-- * The column is added after the email column."
+DROP TABLE customers,Drops the table named 'customers',"-- Comments:
+-- * Drops the customers table."
+"INSERT INTO customers (first_name, last_name, email) VALUES ('John', 'Doe', 'johndoe@example.com')",Inserts a new record into the 'customers' table,"-- Comments:
+-- * Inserts a new customer record into the customers table."
+UPDATE customers SET first_name = 'Jane' WHERE customer_id = 1,Updates the first_name of the customer with customer_id 1 to 'Jane',"-- Comments:
+-- * Updates the first name of customer with ID 1 to 'Jane'."
+DELETE FROM customers WHERE last_name = 'Smith',Deletes all records from the 'customers' table where the last_name is 'Smith',"-- Comments:
+-- * Deletes all customers with the last name of 'Smith'."
+SELECT * FROM customers,Selects all columns and rows from the 'customers' table,"-- Comments:
+-- * Selects all columns from the customers table."
+"SELECT first_name, last_name FROM customers",Selects the first_name and last_name columns from the 'customers' table,"-- Comments:
+-- * Selects the first and last name of all customers."
+SELECT * FROM customers WHERE email LIKE '%@example.com',Selects all columns and rows from the 'customers' table where the email address contains '@example.com',"-- Comments:
+-- * Selects all customers with an email address ending in @example.com."
+"SELECT customers.first_name, orders.order_date FROM customers JOIN orders ON customers.customer_id = orders.customer_id",Joins the 'customers' and 'orders' tables and selects the first_name from 'customers' and the order_date from 'orders',"-- Comments:
+-- * Joins the customers and orders tables on the customer_id column.
+-- * Selects the first_name and order_date columns from the customers and orders tables, respectively."
+SELECT COUNT(*) FROM customers,Counts the total number of records in the 'customers' table,"-- Comments:
+-- * Counts the number of rows in the customers table."
+"GRANT SELECT, INSERT, UPDATE ON customers TO 'user'@'localhost'","Grants the user 'user'@'localhost' the SELECT, INSERT, and UPDATE privileges on the 'customers' table","-- Comments:
+-- * Grants SELECT, INSERT, UPDATE permissions on the customers table to the user 'user'@'localhost'."
+REVOKE UPDATE ON customers FROM 'user'@'localhost',Revokes the UPDATE privilege on the 'customers' table from the user 'user'@'localhost',"-- Comments:
+-- * Revokes the UPDATE privilege on the customers table from the user 'user'@'localhost'."
+START TRANSACTION,Begins a new transaction,"-- Comments:
+-- * Begins a transaction.
+####
+COMMIT TRANSACTION =>  -- Comments:
+-- * Commits a transaction."
+"INSERT INTO customers (first_name, last_name, email) VALUES ('Jane', 'Doe', 'janedoe@example.com')",Inserts a new record into the 'customers' table during a transaction,"-- Comments:
+-- * Inserts a new customer record into the customers table."
+UPDATE customers SET email = 'janedoe2@example.com' WHERE customer_id = 1,Updates the email address of the customer with customer_id 1 to 'janedoe2@example.com' during a transaction,"-- Comments:
+-- * Updates the email address for customer with ID 1 to 'janedoe2@example.com'."
+COMMIT,Permanently commits the changes made during the transaction,"-- Comments:
+-- * Commits all pending changes to the database."
+ROLLBACK,Undoes all changes made during the transaction,"-- Comments:
+-- * Undoes all changes made in the current transaction."
+SELECT * FROM customers WHERE customer_id IN (SELECT customer_id FROM orders WHERE order_amount > 100),Selects all columns and rows from the 'customers' table where the customer_id is in the list of customer_ids from the 'orders' table where the order_amount is greater than 100,"-- Comments:
+-- * Get all customers who have placed an order with an amount greater than 100."
+CREATE VIEW active_customers AS SELECT * FROM customers WHERE active = 1;,Creates a view named 'active_customers' that selects all columns and rows from the 'customers' table where the active flag is true,"-- Comments:
+-- * Creates a view of all active customers.
+-- * This can be used to quickly query for a list of active customers."
+"CREATE PROCEDURE insert_customer(IN first_name VARCHAR(50), IN last_name VARCHAR(50), IN email VARCHAR(100))BEGIN INSERT INTO customers (first_name, last_name, email) VALUES (first_name, last_name, email);END;",Creates a stored procedure named 'insert_customer' that takes three parameters and inserts a new record into the 'customers' table,"-- Comments:
+-- * Creates a stored procedure to insert a new customer record.
+-- * Takes three parameters: first_name, last_name, and email.
+-- * Inserts the values into the customers table."

@@ -24,7 +24,7 @@
 
     },
     {
-        "prompt":"Generate a code comment for the following python function:",
+        "prompt":"Generate a comment for the following SQL Commannd:",
         "context": [
             {
                 "code":"SELECT OrderID, CustomerName, OrderDate, OrderStatus FROM Orders WHERE OrderStatus = 'Completed' AND OrderDate >= DATEADD(MONTH, -1, GETDATE()) AND ReviewID IS NULL;",
